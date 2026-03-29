@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Hello from James</title>
+  <title>Connect 4</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -14,7 +14,7 @@
       align-items: center;
       justify-content: center;
       min-height: 100vh;
-      background: red;
+      background: black;
       color: #e0e0e0;
     }
 
@@ -28,37 +28,36 @@
 
     .board {
       display: grid;
-      grid-template-columns: repeat(3, 120px);
-      grid-template-rows: repeat(3, 120px);
-      gap: 6px;
+      grid-template-columns: repeat(7, 60px);
+      grid-template-rows: repeat(6, 60px);
+      gap: 4px;
+      background: #1a1a2e;
+      padding: 8px;
+      border-radius: 8px;
     }
 
     .cell {
       background: #16213e;
       border: 2px solid #0f3460;
-      border-radius: 8px;
-      font-size: 3rem;
-      font-weight: bold;
+      border-radius: 50%;
       cursor: pointer;
       transition: background 0.15s;
-      color: #e0e0e0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .cell:hover { background: #1a2a50; }
-    .cell.x { color: #e94560; }
-    .cell.o { color: #53a8b6; }
+    .cell.red { background: #e94560; }
+    .cell.yellow { background: #ffd700; }
 
-    .cell.win {
-      background: #0f3460;
-      animation: pulse 0.5s ease-in-out 2;
-    }
-
-    @keyframes pulse {
-      50% { transform: scale(1.08); }
-    }
-
-    button.reset {
+    .controls {
       margin-top: 1.5rem;
+      display: flex;
+      gap: 1rem;
+    }
+
+    button {
       padding: 0.6rem 2rem;
       font-size: 1rem;
       border: none;
@@ -69,72 +68,121 @@
       transition: background 0.15s;
     }
 
-    button.reset:hover { background: #c73652; }
+    button:hover { background: #c73652; }
   </style>
 </head>
 <body>
-  <h1>Tic Tac Toe</h1>
-  <div class="status" id="status">X's turn</div>
+  <h1>Connect 4</h1>
+  <div class="status" id="status">Red's turn</div>
   <div class="board" id="board"></div>
-  <button class="reset" id="reset">New Game</button>
+  <div class="controls">
+    <button id="reset">New Game</button>
+  </div>
 
   <script>
     const board = document.getElementById('board');
     const status = document.getElementById('status');
     const resetBtn = document.getElementById('reset');
 
-    const WINS = [
-      [0,1,2],[3,4,5],[6,7,8],
-      [0,3,6],[1,4,7],[2,5,8],
-      [0,4,8],[2,4,6]
-    ];
+    const COLS = 7;
+    const ROWS = 6;
 
-    let cells, turn, gameOver;
+    let grid, turn, gameOver, colHeights;
 
     function init() {
-      board.innerHTML = '';
-      cells = Array(9).fill('');
-      turn = 'X';
+      grid = Array(ROWS).fill(null).map(() => Array(COLS).fill(null));
+      colHeights = Array(COLS).fill(0);
+      turn = 'red';
       gameOver = false;
-      status.textContent = "X's turn";
-
-      for (let i = 0; i < 9; i++) {
-        const cell = document.createElement('button');
-        cell.className = 'cell';
-        cell.dataset.index = i;
-        cell.addEventListener('click', handleClick);
-        board.appendChild(cell);
+      status.textContent = "Red's turn";
+      
+      board.innerHTML = '';
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          const cell = document.createElement('button');
+          cell.className = 'cell';
+          cell.dataset.col = c;
+          cell.dataset.row = r;
+          cell.addEventListener('click', handleClick);
+          board.appendChild(cell);
+        }
       }
     }
 
     function handleClick(e) {
-      const i = +e.target.dataset.index;
-      if (gameOver || cells[i]) return;
-
-      cells[i] = turn;
-      e.target.textContent = turn;
-      e.target.classList.add(turn.toLowerCase());
-
-      const winLine = checkWin(turn);
-      if (winLine) {
-        gameOver = true;
-        status.textContent = `${turn} wins!`;
-        winLine.forEach(idx => board.children[idx].classList.add('win'));
+      if (gameOver) return;
+      
+      const col = +e.target.dataset.col;
+      
+      if (colHeights[col] >= ROWS) {
+        alert('Column full!');
         return;
       }
 
-      if (cells.every(c => c)) {
+      const row = ROWS - 1 - colHeights[col];
+      grid[row][col] = turn;
+      colHeights[col]++;
+
+      updateDisplay();
+
+      if (checkWin(row, col, turn)) {
         gameOver = true;
-        status.textContent = "Draw!";
+        status.textContent = `${turn === 'red' ? 'Red' : 'Yellow'} wins!`;
         return;
       }
 
-      turn = turn === 'X' ? 'O' : 'X';
-      status.textContent = `${turn}'s turn`;
+      if (colHeights.every(h => h === ROWS)) {
+        gameOver = true;
+        status.textContent = 'Draw!';
+        return;
+      }
+
+      turn = turn === 'red' ? 'yellow' : 'red';
+      status.textContent = `${turn === 'red' ? 'Red' : 'Yellow'}'s turn`;
     }
 
-    function checkWin(player) {
-      return WINS.find(line => line.every(i => cells[i] === player)) || null;
+    function updateDisplay() {
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          const cell = board.children[r * COLS + c];
+          if (grid[r][c]) {
+            cell.classList.add(grid[r][c]);
+          }
+        }
+      }
+    }
+
+    function checkWin(row, col, player) {
+      const directions = [
+        [0, 1],   // horizontal
+        [1, 0],   // vertical
+        [1, 1],   // diagonal
+        [1, -1]   // anti-diagonal
+      ];
+
+      for (const [dr, dc] of directions) {
+        let count = 1;
+        
+        // Check positive direction
+        for (let i = 1; i < 4; i++) {
+          const r = row + dr * i;
+          const c = col + dc * i;
+          if (r < 0 || r >= ROWS || c < 0 || c >= COLS || grid[r][c] !== player) break;
+          count++;
+        }
+
+        // Check negative direction
+        for (let i = 1; i < 4; i++) {
+          const r = row - dr * i;
+          const c = col - dc * i;
+          if (r < 0 || r >= ROWS || c < 0 || c >= COLS || grid[r][c] !== player) break;
+          count++;
+        }
+
+        if (count >= 4) return true;
+      }
+
+      return false;
     }
 
     resetBtn.addEventListener('click', init);

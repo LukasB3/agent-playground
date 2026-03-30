@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tic Tac Toe</title>
+  <title>4 Gewinnt</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -23,50 +23,70 @@
 
     .status {
       font-size: 1.25rem;
-      margin-bottom: 1.5rem;
+      margin-bottom: 1.25rem;
       min-height: 2rem;
       display: flex;
       align-items: center;
       gap: 0.5rem;
     }
 
-    .board {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
+    .board-wrap {
       background: #0f3460;
       border-radius: 12px;
-      padding: 12px;
+      padding: 10px;
     }
 
-    .cell {
-      width: clamp(80px, 22vw, 130px);
-      height: clamp(80px, 22vw, 130px);
-      background: #1a1a2e;
-      border-radius: 8px;
+    /* Column hover targets sit above the board */
+    .col-targets {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+      margin-bottom: 4px;
+    }
+
+    .col-btn {
+      height: clamp(24px, 5vw, 36px);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: clamp(2.5rem, 10vw, 4rem);
-      font-weight: bold;
-      cursor: pointer;
-      transition: background 0.15s, transform 0.1s;
-      user-select: none;
+      font-size: clamp(0.9rem, 3vw, 1.25rem);
+      color: transparent;
+      transition: color 0.15s;
     }
 
-    .cell:hover:not(.taken) { background: #16213e; transform: scale(1.04); }
+    .col-btn:hover { color: #e0e0e0; }
+    .col-btn:disabled { cursor: not-allowed; }
+    .col-btn.red-turn:hover { color: #e94560; }
+    .col-btn.yellow-turn:hover { color: #ffd700; }
 
-    .cell.x { color: #e94560; cursor: default; }
-    .cell.o { color: #53a8b6; cursor: default; }
-    .cell.taken { cursor: default; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+    }
+
+    .cell {
+      width: clamp(36px, 10vw, 72px);
+      height: clamp(36px, 10vw, 72px);
+      background: #1a1a2e;
+      border-radius: 50%;
+      transition: background 0.12s;
+    }
+
+    .cell.red   { background: #e94560; }
+    .cell.yellow { background: #ffd700; }
 
     .cell.win {
-      animation: pulse 0.5s ease-in-out 3;
+      animation: pulse 0.5s ease-in-out 4;
     }
 
     @keyframes pulse {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.12); }
+      0%, 100% { transform: scale(1); filter: brightness(1); }
+      50%       { transform: scale(1.15); filter: brightness(1.4); }
     }
 
     button.reset {
@@ -85,85 +105,133 @@
   </style>
 </head>
 <body>
-  <h1>Tic Tac Toe</h1>
+  <h1>4 Gewinnt</h1>
   <div class="status" id="status"></div>
-  <div class="board" id="board"></div>
-  <button class="reset" id="reset">New Game</button>
+
+  <div class="board-wrap">
+    <div class="col-targets" id="col-targets"></div>
+    <div class="grid" id="grid"></div>
+  </div>
+
+  <button class="reset" id="reset">Neues Spiel</button>
 
   <script>
-    const boardEl = document.getElementById('board');
-    const statusEl = document.getElementById('status');
-    const resetBtn = document.getElementById('reset');
+    const COLS = 7, ROWS = 6;
 
-    const WIN_LINES = [
-      [0,1,2],[3,4,5],[6,7,8], // rows
-      [0,3,6],[1,4,7],[2,5,8], // cols
-      [0,4,8],[2,4,6],         // diagonals
-    ];
+    const gridEl      = document.getElementById('grid');
+    const colTargets  = document.getElementById('col-targets');
+    const statusEl    = document.getElementById('status');
+    const resetBtn    = document.getElementById('reset');
 
-    let grid, turn, gameOver, cells;
+    // board[row][col], row 0 = top
+    let board, turn, gameOver, cells, colBtns;
 
     function init() {
-      grid = Array(9).fill(null);
-      turn = 'X';
+      board    = Array.from({ length: ROWS }, () => Array(COLS).fill(null));
+      turn     = 'red';
       gameOver = false;
 
-      boardEl.innerHTML = '';
+      // Build column drop buttons
+      colTargets.innerHTML = '';
+      colBtns = [];
+      for (let c = 0; c < COLS; c++) {
+        const btn = document.createElement('button');
+        btn.className = 'col-btn red-turn';
+        btn.textContent = '▼';
+        btn.dataset.col = c;
+        btn.addEventListener('click', () => drop(c));
+        colTargets.appendChild(btn);
+        colBtns.push(btn);
+      }
+
+      // Build cells — rendered top-to-bottom
+      gridEl.innerHTML = '';
       cells = [];
-      for (let i = 0; i < 9; i++) {
-        const cell = document.createElement('div');
-        cell.className = 'cell';
-        cell.dataset.i = i;
-        cell.addEventListener('click', () => play(i));
-        boardEl.appendChild(cell);
-        cells.push(cell);
+      for (let r = 0; r < ROWS; r++) {
+        cells[r] = [];
+        for (let c = 0; c < COLS; c++) {
+          const cell = document.createElement('div');
+          cell.className = 'cell';
+          gridEl.appendChild(cell);
+          cells[r][c] = cell;
+        }
       }
 
       setStatus();
     }
 
-    function playerColor(p) {
-      return p === 'X' ? '#e94560' : '#53a8b6';
+    function playerLabel(p) {
+      const name  = p === 'red' ? 'Rot' : 'Gelb';
+      const color = p === 'red' ? '#e94560' : '#ffd700';
+      return `<span style="color:${color};font-weight:bold">${name}</span>`;
     }
 
     function setStatus(msg) {
-      if (msg) {
-        statusEl.innerHTML = msg;
-      } else {
-        statusEl.innerHTML = `<span style="color:${playerColor(turn)};font-weight:bold">${turn}</span>&nbsp;'s turn`;
-      }
+      statusEl.innerHTML = msg ?? `${playerLabel(turn)} ist dran`;
     }
 
-    function play(i) {
-      if (gameOver || grid[i]) return;
+    function drop(col) {
+      if (gameOver) return;
 
-      grid[i] = turn;
-      cells[i].textContent = turn;
-      cells[i].classList.add(turn.toLowerCase(), 'taken');
+      // Find lowest empty row in this column
+      let row = -1;
+      for (let r = ROWS - 1; r >= 0; r--) {
+        if (!board[r][col]) { row = r; break; }
+      }
+      if (row === -1) return; // column full
 
-      const winLine = checkWin();
-      if (winLine) {
+      board[row][col] = turn;
+      cells[row][col].classList.add(turn);
+
+      // Disable full columns
+      updateColButtons();
+
+      const winCells = checkWin(row, col);
+      if (winCells) {
         gameOver = true;
-        winLine.forEach(idx => cells[idx].classList.add('win'));
-        statusEl.innerHTML = `<span style="color:${playerColor(turn)};font-weight:bold">${turn}</span>&nbsp;wins! 🎉`;
+        winCells.forEach(([r, c]) => cells[r][c].classList.add('win'));
+        setStatus(`${playerLabel(turn)} gewinnt! 🎉`);
+        colBtns.forEach(b => b.disabled = true);
         return;
       }
 
-      if (grid.every(v => v)) {
+      if (board[0].every((v, c) => board[0][c])) {
         gameOver = true;
-        statusEl.textContent = "It's a draw!";
+        setStatus('Unentschieden!');
+        colBtns.forEach(b => b.disabled = true);
         return;
       }
 
-      turn = turn === 'X' ? 'O' : 'X';
+      turn = turn === 'red' ? 'yellow' : 'red';
+      updateColButtons();
       setStatus();
     }
 
-    function checkWin() {
-      for (const [a, b, c] of WIN_LINES) {
-        if (grid[a] && grid[a] === grid[b] && grid[a] === grid[c]) {
-          return [a, b, c];
+    function updateColButtons() {
+      const turnClass = turn === 'red' ? 'red-turn' : 'yellow-turn';
+      colBtns.forEach((btn, c) => {
+        btn.className = 'col-btn ' + turnClass;
+        btn.disabled  = !!board[0][c]; // full if top row occupied
+      });
+    }
+
+    function checkWin(row, col) {
+      const player = board[row][col];
+      const directions = [[0,1],[1,0],[1,1],[1,-1]];
+
+      for (const [dr, dc] of directions) {
+        const line = [[row, col]];
+
+        for (const sign of [1, -1]) {
+          let r = row + dr * sign, c = col + dc * sign;
+          while (r >= 0 && r < ROWS && c >= 0 && c < COLS && board[r][c] === player) {
+            line.push([r, c]);
+            r += dr * sign;
+            c += dc * sign;
+          }
         }
+
+        if (line.length >= 4) return line;
       }
       return null;
     }

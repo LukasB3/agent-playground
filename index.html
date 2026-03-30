@@ -139,7 +139,7 @@
         btn.className = 'col-btn red-turn';
         btn.textContent = '▼';
         btn.dataset.col = c;
-        btn.addEventListener('click', () => drop(c));
+        btn.addEventListener('click', () => drop(Number(btn.dataset.col)));
         colTargets.appendChild(btn);
         colBtns.push(btn);
       }
@@ -161,57 +161,177 @@
     }
 
     function playerLabel(p) {
-      const name  = p === 'red' ? 'Rot' : 'Gelb';
+      const name  = p === 'red' ? 'Du' : 'Computer';
       const color = p === 'red' ? '#e94560' : '#ffd700';
       return `<span style="color:${color};font-weight:bold">${name}</span>`;
     }
 
     function setStatus(msg) {
-      statusEl.innerHTML = msg ?? `${playerLabel(turn)} ist dran`;
+      if (msg !== undefined) {
+        statusEl.innerHTML = msg;
+      } else {
+        statusEl.innerHTML = turn === 'red'
+          ? `${playerLabel('red')} bist dran`
+          : `<span style="color:#ffd700;font-weight:bold">Computer</span> denkt nach...`;
+      }
     }
 
     function drop(col) {
       if (gameOver) return;
+      if (turn !== 'red') return; // block input during computer turn
 
+      placepiece(col, 'red');
+    }
+
+    function placepiece(col, player) {
       // Find lowest empty row in this column
       let row = -1;
       for (let r = ROWS - 1; r >= 0; r--) {
         if (!board[r][col]) { row = r; break; }
       }
-      if (row === -1) return; // column full
+      if (row === -1) return false; // column full
 
-      board[row][col] = turn;
-      cells[row][col].classList.add(turn);
-
-      // Disable full columns
-      updateColButtons();
+      board[row][col] = player;
+      cells[row][col].classList.add(player);
 
       const winCells = checkWin(row, col);
       if (winCells) {
         gameOver = true;
         winCells.forEach(([r, c]) => cells[r][c].classList.add('win'));
-        setStatus(`${playerLabel(turn)} gewinnt! 🎉`);
+        if (player === 'red') {
+          setStatus(`${playerLabel('red')} gewinnst! 🎉`);
+        } else {
+          setStatus(`${playerLabel('yellow')} gewinnt! 🤖`);
+        }
         colBtns.forEach(b => b.disabled = true);
-        return;
+        return true;
       }
 
       if (board[0].every((v, c) => board[0][c])) {
         gameOver = true;
         setStatus('Unentschieden!');
         colBtns.forEach(b => b.disabled = true);
-        return;
+        return true;
       }
 
-      turn = turn === 'red' ? 'yellow' : 'red';
+      turn = player === 'red' ? 'yellow' : 'red';
       updateColButtons();
       setStatus();
+
+      if (turn === 'yellow') {
+        // Disable buttons while computer thinks
+        colBtns.forEach(b => b.disabled = true);
+        setTimeout(computerMove, 500);
+      }
+
+      return true;
+    }
+
+    function computerMove() {
+      if (gameOver) return;
+      const col = pickBestColumn();
+      placepiece(col, 'yellow');
+    }
+
+    // Returns the lowest available row for a column on a given board state
+    function lowestRow(b, col) {
+      for (let r = ROWS - 1; r >= 0; r--) {
+        if (!b[r][col]) return r;
+      }
+      return -1;
+    }
+
+    // Check win on an arbitrary board state after placing at (row, col)
+    function checkWinOn(b, row, col) {
+      const player = b[row][col];
+      const directions = [[0,1],[1,0],[1,1],[1,-1]];
+      for (const [dr, dc] of directions) {
+        let count = 1;
+        for (const sign of [1, -1]) {
+          let r = row + dr * sign, c = col + dc * sign;
+          while (r >= 0 && r < ROWS && c >= 0 && c < COLS && b[r][c] === player) {
+            count++;
+            r += dr * sign;
+            c += dc * sign;
+          }
+        }
+        if (count >= 4) return true;
+      }
+      return false;
+    }
+
+    // Score a column for the AI: higher = better
+    function scoreColumn(col, player) {
+      const row = lowestRow(board, col);
+      if (row === -1) return -Infinity;
+
+      // Simulate placing
+      board[row][col] = player;
+      const wins = checkWinOn(board, row, col);
+      board[row][col] = null;
+
+      if (wins) return 1000;
+
+      // Count potential sequences of 3 for this player
+      let score = 0;
+      const directions = [[0,1],[1,0],[1,1],[1,-1]];
+      board[row][col] = player;
+      for (const [dr, dc] of directions) {
+        let count = 1;
+        for (const sign of [1, -1]) {
+          let r = row + dr * sign, c = col + dc * sign;
+          while (r >= 0 && r < ROWS && c >= 0 && c < COLS && board[r][c] === player) {
+            count++;
+            r += dr * sign;
+            c += dc * sign;
+          }
+        }
+        if (count >= 3) score += 10;
+        else if (count >= 2) score += 3;
+      }
+      board[row][col] = null;
+
+      // Prefer center columns
+      const centerBonus = [0, 1, 2, 4, 2, 1, 0];
+      score += centerBonus[col];
+
+      return score;
+    }
+
+    function pickBestColumn() {
+      // 1. Check if computer can win immediately
+      for (let c = 0; c < COLS; c++) {
+        const row = lowestRow(board, c);
+        if (row === -1) continue;
+        board[row][c] = 'yellow';
+        const wins = checkWinOn(board, row, c);
+        board[row][c] = null;
+        if (wins) return c;
+      }
+
+      // 2. Block player from winning
+      for (let c = 0; c < COLS; c++) {
+        const row = lowestRow(board, c);
+        if (row === -1) continue;
+        board[row][c] = 'red';
+        const wins = checkWinOn(board, row, c);
+        board[row][c] = null;
+        if (wins) return c;
+      }
+
+      // 3. Pick highest-scoring column
+      let bestCol = -1, bestScore = -Infinity;
+      for (let c = 0; c < COLS; c++) {
+        const s = scoreColumn(c, 'yellow');
+        if (s > bestScore) { bestScore = s; bestCol = c; }
+      }
+      return bestCol;
     }
 
     function updateColButtons() {
-      const turnClass = turn === 'red' ? 'red-turn' : 'yellow-turn';
       colBtns.forEach((btn, c) => {
-        btn.className = 'col-btn ' + turnClass;
-        btn.disabled  = !!board[0][c]; // full if top row occupied
+        btn.className = 'col-btn red-turn';
+        btn.disabled  = !!board[0][c] || turn !== 'red';
       });
     }
 

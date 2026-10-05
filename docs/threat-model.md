@@ -21,7 +21,7 @@ The goal is that under these assumptions the attacker gains nothing beyond a sta
 ## Trust boundaries
 
 1. **Internet → orchestrator API.** Untrusted HTTP. Input is a prompt of limited length and a captcha token, validated with a schema. Job ids in URLs must match a fixed pattern before they touch the database.
-2. **Orchestrator → sandbox.** The orchestrator passes exactly three things into the container: the prompt on stdin, a job token in the environment, and an empty workspace with the bundled libraries. The command line is fixed in the image.
+2. **Orchestrator → launcher → sandbox.** The orchestrator cannot talk to Docker. It hands a job id, a job token and the prompt to a root-owned launcher, which starts the container with fixed settings. Exactly three things reach the container: the prompt on stdin, the token in the environment, and an empty workspace with the bundled libraries. The agent's command line is fixed in the image.
 3. **Sandbox → key proxy.** The only network path out of the sandbox. The proxy treats the container as hostile.
 4. **Sandbox → orchestrator (the workspace).** Whatever the agent wrote is hostile data. It is read by the checker and never executed on the server.
 5. **Orchestrator → GitHub.** Git runs with a deploy key scoped to one repository and a pinned host key.
@@ -62,7 +62,7 @@ The policy is the actual enforcement. With `connect-src 'none'`, `form-action 'n
 
 ### The attacker targets the pipeline itself
 
-- **Command injection.** The prompt is never part of a command line, a path or a commit message. Subprocesses (`docker`, `git`) are started with argument arrays. The only request-derived value used in paths is the job id, which the server generates from random bytes.
+- **Command injection.** The prompt is never part of a command line, a path or a commit message. Subprocesses (`sudo`, `git`) are started with argument arrays. The only request-derived value used in paths is the job id, which the server generates from random bytes.
 - **Path tricks in the workspace.** Symlinks, special files, dotfiles, odd names and deep nesting are rejected before any content is read. Output paths are built from names that passed a strict pattern.
 - **Tampering with bundled libraries.** The agent's copy of `lib/` is ignored. Referenced libraries are published from the pristine copies on the server.
 - **Leaking internals through errors.** Visitors see fixed messages. Details go to the server log.
@@ -73,11 +73,11 @@ The policy is the actual enforcement. With `connect-src 'none'`, `form-action 'n
 - Three jobs per visitor per hour (IPv6 visitors are counted per /64), ten per hour and thirty per day overall, a queue of ten.
 - One job at a time, each with a hard timeout and a token budget.
 - A monthly spend limit on the Anthropic workspace as the outer bound.
-- Visitor addresses are stored only as keyed hashes.
+- Visitor addresses are stored only as keyed hashes, and jobs are deleted from the database after 30 days.
 
 ## Known trade-offs
 
-- **The orchestrator can use Docker.** It starts containers through the Docker socket, which is equivalent to root on the host. The orchestrator is trusted code and handles the prompt only as data, but a bug in it would be serious. A narrower design would move container start-up into a small root-owned launcher that accepts nothing but a job id.
+- **The launcher runs as root.** The orchestrator has no access to the Docker socket. It may run one root-owned script through sudo, `pg-sandbox run|kill <job-id>`, which validates the id and the job token and then starts a container whose every other setting is fixed in the script and a root-owned config file. A bug in that script would be serious, so it is short and tested. The price is that the service cannot use `NoNewPrivileges` and the systemd options that imply it.
 - **Navigation cannot be blocked.** No browser policy stops a script from redirecting the top-level page. The checker rejects scripts that contain external URLs, but an obfuscated one would pass. The page could then send the visitor to another site, without being able to read or submit anything first.
 - **Shared origin on github.io.** All published apps share one origin with each other and with other project pages of the same account. They can read each other's local storage. Nothing sensitive may ever be hosted on that origin.
 - **The checker is not a content filter.** It enforces what a page can do, not what it says. Offensive text passes. The badge, the captcha and the ability to delete an app are the answer to that.

@@ -43,7 +43,7 @@ export const createPipeline = (cfg: Config): Pipeline => {
       await mkdir(workspace, { recursive: true })
       await cp(cfg.LIBS_DIR, join(workspace, 'lib'), { recursive: true })
 
-      const agent = (problems?: string[]) => runAgent(cfg, { jobId: job.id, workspace, request: job.prompt, problems, token, deadline, onFile: report.file })
+      const agent = (problems?: string[]) => runAgent(cfg, { jobId: job.id, request: job.prompt, problems, token, deadline, onFile: report.file })
       const check = () =>
         validateWorkspace(workspace, {
           jobId: job.id,
@@ -69,7 +69,7 @@ export const createPipeline = (cfg: Config): Pipeline => {
       report.status('publishing')
       return await publish(job.id, files)
     } finally {
-      await killContainer(job.id)
+      await killContainer(cfg, job.id)
       await rm(workspace, { recursive: true, force: true })
     }
   }

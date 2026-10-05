@@ -11,7 +11,8 @@ flowchart LR
   V[Visitor] -->|prompt + captcha| W[Website<br/>Vercel]
   W -->|POST /api/jobs, SSE| O[Orchestrator<br/>queue, one job at a time]
   subgraph VPS[Hetzner VPS]
-    O -->|starts, kills| S[Sandbox container<br/>Claude Code, file tools only]
+    O -->|job id| L[Launcher<br/>root-owned, fixed settings]
+    L -->|starts, kills| S[Sandbox container<br/>Claude Code, file tools only]
     S -->|job token| P[Key proxy<br/>holds the API key]
     O -->|reads workspace| C[Checker<br/>plain code]
     C --> G[Publisher<br/>git + deploy key]
@@ -34,6 +35,7 @@ flowchart LR
 | Agent runs commands or reaches the network | No shell or web tools (`--restricted`, fixed tool list baked into the image). Container: non-root, read-only root filesystem, all capabilities dropped, memory, CPU and process limits. Its network is internal with no gateway on the host, so the only reachable address is the key proxy. |
 | Agent steals the API key | The key exists only in the proxy's environment. The container gets an HMAC-signed token bound to the job id and the job deadline. |
 | Agent abuses the API through the proxy | Only `POST /v1/messages` is forwarded. Model allow-list, `max_tokens` cap, request and output-token budget per job. Requests that carry server tools (web search, web fetch, code execution) or MCP servers are refused, since those would give the sandbox a way out through Anthropic's side. |
+| Web-facing process gets compromised | The orchestrator has no Docker access. It can only ask a root-owned launcher to start or kill the container for a job id; image, network, limits and mounts are fixed there. |
 | Agent gets at git or GitHub | The image has no git and no credentials. The orchestrator publishes with a deploy key that is valid for the apps repository only. |
 | Malicious output is published | The checker allows only `.html`, `.css`, `.js`, `.json` and `.txt` within size and count limits, rejects symlinks, secrets, inline scripts, external or absolute URLs, iframes, password and card fields, and forms that submit anywhere. HTML is re-serialised with a strict CSP (`connect-src 'none'`, `form-action 'none'`, `script-src 'self'`) and a visible "AI-generated" badge. |
 | Injection through the prompt | The prompt reaches the agent on stdin only. Job ids are generated server-side and are the only request-derived value in any path or command. Every subprocess is started with an argument array, never through a shell. |
@@ -48,7 +50,7 @@ The full reasoning, including the trade-offs that remain, is in [docs/threat-mod
 | `web/` | The website: Vite, TypeScript, no framework. Deployed to Vercel. |
 | `orchestrator/` | API, queue, sandbox runner, checker, publisher and the key proxy (Node 22, TypeScript, Fastify, SQLite). |
 | `sandbox/` | Image for the agent container, its system prompt and the bundled libraries. |
-| `infra/` | Provisioning and deploy scripts, Caddy config, systemd unit, compose file. |
+| `infra/` | Provisioning and deploy scripts, sandbox launcher, Caddy config, systemd unit, compose file. |
 
 ## Development
 
@@ -57,7 +59,7 @@ nvm use
 
 cd orchestrator
 npm ci
-npm test          # checker, proxy, token, API and queue tests
+npm test          # checker, proxy, launcher, token, API and queue tests
 npm run typecheck
 
 cd ../web

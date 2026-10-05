@@ -7,25 +7,20 @@ Requires=docker.service
 [Service]
 User=playground
 Group=playground
-SupplementaryGroups=docker
 EnvironmentFile=/etc/agent-playground/orchestrator.env
 WorkingDirectory=/opt/agent-playground/orchestrator
 ExecStart=/usr/bin/node dist/main.js
 Restart=on-failure
 RestartSec=3
 
-NoNewPrivileges=true
-CapabilityBoundingSet=
+# The service has no Docker access. It starts job containers through sudo and
+# the pg-sandbox launcher, so NoNewPrivileges and the options that imply it
+# cannot be used here.
 ProtectSystem=strict
 ReadWritePaths=/var/lib/agent-playground
 ProtectHome=true
 PrivateTmp=true
-PrivateDevices=true
-ProtectKernelTunables=true
-ProtectKernelModules=true
 ProtectControlGroups=true
-RestrictSUIDSGID=true
-LockPersonality=true
 
 [Install]
 WantedBy=multi-user.target

@@ -105,6 +105,12 @@ export class Store {
     return rows.length
   }
 
+  // Prompts and visitor hashes are not kept longer than needed for limits and debugging.
+  purgeOlderThan(cutoff: number) {
+    this.db.prepare('DELETE FROM events WHERE jobId IN (SELECT id FROM jobs WHERE createdAt < ?)').run(cutoff)
+    return this.db.prepare('DELETE FROM jobs WHERE createdAt < ?').run(cutoff).changes
+  }
+
   close() {
     this.db.close()
   }

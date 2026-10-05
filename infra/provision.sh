@@ -30,7 +30,8 @@ ufw --force enable
 
 echo "== service user and directories"
 id -u playground &>/dev/null || useradd --system --home-dir "$data" --shell /usr/sbin/nologin playground
-usermod -aG docker playground
+# The orchestrator must not reach the Docker socket; it gets the launcher below instead.
+gpasswd --delete playground docker &>/dev/null || true
 install -d -o playground -g playground -m 750 "$data"
 install -d -o root -g playground -m 750 "$etc"
 
@@ -60,6 +61,12 @@ if [[ ! -f $etc/deploy_key ]]; then
   chmod 600 "$etc/deploy_key"
 fi
 install -o root -g root -m 644 "$here/github_known_hosts" "$etc/known_hosts"
+
+echo "== sandbox launcher"
+install -o root -g root -m 755 "$here/pg-sandbox" /usr/local/sbin/pg-sandbox
+install -o root -g root -m 644 "$here/sandbox.conf" "$etc/sandbox.conf"
+install -o root -g root -m 440 "$here/sudoers" /etc/sudoers.d/agent-playground
+visudo -cf /etc/sudoers.d/agent-playground
 
 echo "== caddy"
 sed "s/{{API_DOMAIN}}/$API_DOMAIN/" "$here/Caddyfile" > /etc/caddy/Caddyfile

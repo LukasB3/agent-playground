@@ -10,7 +10,6 @@ export class JobTimeout extends Error {}
 
 export interface AgentRun {
   jobId: string
-  workspace: string
   request: string
   problems?: string[]
   token: string
@@ -34,49 +33,27 @@ export const framePrompt = (request: string, problems: string[] = []) =>
       : []),
   ].join('\n')
 
-export const dockerArgs = (cfg: Config, job: Pick<AgentRun, 'jobId' | 'workspace'>, uid: number, gid: number) => [
-  'run', '--rm', '-i',
-  '--name', `pg-job-${job.jobId}`,
-  '--network', cfg.SANDBOX_NETWORK,
-  '--runtime', cfg.SANDBOX_RUNTIME,
-  '--user', `${uid}:${gid}`,
-  '--read-only',
-  '--cap-drop', 'ALL',
-  '--security-opt', 'no-new-privileges',
-  '--pids-limit', String(cfg.SANDBOX_PIDS),
-  '--memory', cfg.SANDBOX_MEMORY,
-  '--memory-swap', cfg.SANDBOX_MEMORY,
-  '--cpus', cfg.SANDBOX_CPUS,
-  '--tmpfs', `/tmp:rw,nosuid,nodev,size=64m,uid=${uid},gid=${gid}`,
-  '--tmpfs', `/home/agent:rw,nosuid,nodev,size=64m,uid=${uid},gid=${gid}`,
-  '--mount', `type=bind,source=${job.workspace},target=/workspace`,
-  '--workdir', '/workspace',
-  '--env', 'HOME=/home/agent',
-  '--env', `ANTHROPIC_BASE_URL=${cfg.PROXY_URL}`,
-  '--env', 'ANTHROPIC_API_KEY',
-  '--env', `ANTHROPIC_MODEL=${cfg.AGENT_MODEL}`,
-  cfg.SANDBOX_IMAGE,
-]
+// The orchestrator has no access to Docker. It asks a root-owned launcher to
+// start the container for a job id; the launcher fixes every other detail.
+const launcher = (cfg: Config, action: 'run' | 'kill', jobId: string) => ['-n', cfg.SANDBOX_LAUNCHER, action, jobId]
 
 // Runs Claude Code headless inside a throwaway container and reports the files
 // it writes. Resolves when the agent finishes, rejects on failure or deadline.
 export const runAgent = (cfg: Config, job: AgentRun) =>
   new Promise<void>((resolve, reject) => {
-    const child = spawn('docker', dockerArgs(cfg, job, process.getuid!(), process.getgid!()), {
-      env: { PATH: process.env.PATH, HOME: process.env.HOME, ANTHROPIC_API_KEY: job.token },
-      stdio: ['pipe', 'pipe', 'pipe'],
-    })
+    const child = spawn('sudo', launcher(cfg, 'run', job.jobId), { env: { PATH: process.env.PATH }, stdio: ['pipe', 'pipe', 'pipe'] })
     let timedOut = false
     let outcome: 'success' | 'error' | undefined
     let stderr = ''
 
     const timer = setTimeout(() => {
       timedOut = true
-      void killContainer(job.jobId)
+      void killContainer(cfg, job.jobId)
     }, Math.max(0, job.deadline - Date.now()))
 
     child.stdin.on('error', () => {})
-    child.stdin.end(framePrompt(job.request, job.problems))
+    // First line is the job token for the launcher, the rest is the agent's prompt.
+    child.stdin.end(`${job.token}\n${framePrompt(job.request, job.problems)}`)
     child.stderr.on('data', (chunk: Buffer) => (stderr = (stderr + chunk.toString()).slice(-2000)))
 
     createInterface({ input: child.stdout }).on('line', (line) => {
@@ -107,4 +84,4 @@ export const runAgent = (cfg: Config, job: AgentRun) =>
     })
   })
 
-export const killContainer = (jobId: string) => run('docker', ['kill', `pg-job-${jobId}`]).catch(() => {})
+export const killContainer = (cfg: Config, jobId: string) => run('sudo', launcher(cfg, 'kill', jobId)).catch(() => {})

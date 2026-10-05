@@ -12,14 +12,7 @@ const schema = z.object({
   IP_HASH_SECRET: secret,
   PROXY_SIGNING_SECRET: secret,
 
-  SANDBOX_IMAGE: z.string().default('pg-sandbox:latest'),
-  SANDBOX_NETWORK: z.string().default('pg-sandbox'),
-  SANDBOX_RUNTIME: z.string().default('runc'),
-  SANDBOX_MEMORY: z.string().default('1g'),
-  SANDBOX_CPUS: z.string().default('1.5'),
-  SANDBOX_PIDS: z.coerce.number().int().default(256),
-  PROXY_URL: z.url().default('http://pg-proxy:8080'),
-  AGENT_MODEL: z.string().default('claude-sonnet-5-5'),
+  SANDBOX_LAUNCHER: z.string().default('/usr/local/sbin/pg-sandbox'),
   LIBS_DIR: z.string().default('/opt/agent-playground/sandbox/libs'),
 
   JOB_TIMEOUT_S: z.coerce.number().int().default(600),

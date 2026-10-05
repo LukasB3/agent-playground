@@ -13,6 +13,11 @@ mkdirSync(join(cfg.DATA_DIR, 'jobs'), { recursive: true })
 const store = new Store(join(cfg.DATA_DIR, 'jobs.sqlite'))
 store.failInterrupted('The server restarted while this app was being built. Please submit it again.')
 
+const RETENTION_MS = 30 * 24 * 3_600_000
+const purge = () => store.purgeOlderThan(Date.now() - RETENTION_MS)
+purge()
+setInterval(purge, 24 * 3_600_000).unref()
+
 const worker = new Worker(store, createPipeline(cfg))
 const app = await buildServer({ cfg, store, worker, captcha: turnstile(cfg.TURNSTILE_SECRET) })
 

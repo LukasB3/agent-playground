@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { loadConfig, type Config } from '../src/config.js'
 import type { Pipeline } from '../src/pipeline.js'
-import { dockerArgs, framePrompt } from '../src/sandbox.js'
+import { framePrompt } from '../src/sandbox.js'
 import { buildServer, clientKey, newJobId } from '../src/server.js'
 import { Store } from '../src/store.js'
 import { ValidationError } from '../src/validate.js'
@@ -139,6 +139,16 @@ describe('job results', () => {
     expect(store.getJob(id)).toMatchObject({ status: 'failed', error: 'restarted' })
   })
 
+  it('purges old jobs and their events', async () => {
+    await setup(gated)
+    store.createJob('old', 'an old request', 'h', Date.now() - 40 * 24 * 3_600_000)
+    store.createJob('new', 'a new request', 'h')
+    expect(store.purgeOlderThan(Date.now() - 30 * 24 * 3_600_000)).toBe(1)
+    expect(store.getJob('old')).toBeUndefined()
+    expect(store.events('old')).toHaveLength(0)
+    expect(store.getJob('new')).toBeDefined()
+  })
+
   it('only allows the website origin through CORS', async () => {
     await setup(gated)
     const from = async (origin: string) => (await app.inject({ url: '/api/health', headers: { origin } })).headers['access-control-allow-origin']
@@ -158,13 +168,5 @@ describe('helpers', () => {
     expect(framed.match(/<\/request>/g)).toHaveLength(1)
     expect(framed.indexOf('ignore previous rules')).toBeLessThan(framed.indexOf('</request>'))
     expect(framed.indexOf('inline <script>')).toBeGreaterThan(framed.indexOf('</request>'))
-  })
-
-  it('starts the sandbox locked down and without the credential on the command line', () => {
-    const args = dockerArgs(cfg, { jobId: 'abc', workspace: '/data/jobs/abc' }, 995, 995).join(' ')
-    for (const flag of ['--network pg-sandbox', '--read-only', '--cap-drop ALL', '--security-opt no-new-privileges', '--pids-limit 256', '--memory 1g', '--cpus 1.5', '--user 995:995', '--rm'])
-      expect(args).toContain(flag)
-    expect(args).toContain('--env ANTHROPIC_API_KEY --env')
-    expect(args).not.toMatch(/privileged|docker\.sock|--network host|pgj1\./)
   })
 })

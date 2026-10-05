@@ -1,0 +1,23 @@
+{{API_DOMAIN}} {
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options nosniff
+		Referrer-Policy no-referrer
+		-Server
+	}
+
+	request_body {
+		max_size 32KB
+	}
+
+	handle /api/* {
+		reverse_proxy 127.0.0.1:8787 {
+			# Progress is streamed as server-sent events.
+			flush_interval -1
+		}
+	}
+
+	handle {
+		respond 404
+	}
+}

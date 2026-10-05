@@ -1,0 +1,39 @@
+# Long-running containers and the two networks. Job containers are started by
+# the orchestrator and join `pg-sandbox`, which has no route to the internet:
+# the key proxy is the only thing they can reach.
+name: agent-playground
+
+services:
+  proxy:
+    build:
+      context: ../orchestrator
+      dockerfile: proxy.Dockerfile
+    image: pg-proxy:latest
+    container_name: pg-proxy
+    restart: unless-stopped
+    env_file: /etc/agent-playground/proxy.env
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ['no-new-privileges:true']
+    pids_limit: 128
+    mem_limit: 256m
+    networks: [sandbox, egress]
+
+  sandbox:
+    build: ../sandbox
+    image: pg-sandbox:latest
+    profiles: [build]
+
+networks:
+  sandbox:
+    name: pg-sandbox
+    internal: true
+    # No host-side address on this bridge, so job containers cannot reach
+    # services on the host itself (sshd, Caddy) through the gateway either.
+    driver_opts:
+      com.docker.network.bridge.gateway_mode_ipv4: isolated
+    ipam:
+      config:
+        - subnet: 172.30.0.0/24
+  egress:
+    name: pg-egress

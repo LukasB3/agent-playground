@@ -19,7 +19,7 @@ export type Pipeline = (job: Job, report: Reporter) => Promise<string>
 export const publicError = (error: unknown) => {
   if (error instanceof JobTimeout) return 'The build took too long and was stopped.'
   if (error instanceof ValidationError) return `The generated app did not pass the safety checks: ${error.problems.slice(0, 3).join('; ')}`
-  if (error instanceof AgentError) return 'The coding agent could not finish this request.'
+  if (error instanceof AgentError) return 'The coding agent declined or could not finish this request. Try describing a simple, harmless app.'
   return 'Something went wrong while building your app.'
 }
 

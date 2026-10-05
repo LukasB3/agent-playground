@@ -34,7 +34,7 @@ export const vetRequest = (raw: Buffer, policy: ProxyPolicy): Verdict => {
     return { ok: false, message: 'body is not JSON' }
   }
   if (typeof body !== 'object' || body === null || Array.isArray(body)) return { ok: false, message: 'body is not an object' }
-  if (typeof body.model !== 'string' || !policy.models.includes(body.model)) return { ok: false, message: 'model not allowed' }
+  if (typeof body.model !== 'string' || !policy.models.includes(body.model)) return { ok: false, message: `model not allowed: ${String(body.model).replace(/[^a-z0-9.-]/gi, '').slice(0, 60)}` }
   if ('mcp_servers' in body) return { ok: false, message: 'mcp_servers not allowed' }
   if (body.tools !== undefined) {
     if (!Array.isArray(body.tools)) return { ok: false, message: 'tools must be a list' }

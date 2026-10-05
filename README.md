@@ -48,7 +48,7 @@ The full reasoning, including the trade-offs that remain, is in [docs/threat-mod
 | Path | Contents |
 | --- | --- |
 | `web/` | The website: Vite, TypeScript, no framework. Deployed to Vercel. |
-| `orchestrator/` | API, queue, sandbox runner, checker, publisher and the key proxy (Node 22, TypeScript, Fastify, SQLite). |
+| `orchestrator/` | API, queue, sandbox runner, checker, publisher and the key proxy (Node 22, TypeScript, Fastify, built-in SQLite). |
 | `sandbox/` | Image for the agent container, its system prompt and the bundled libraries. |
 | `infra/` | Provisioning and deploy scripts, sandbox launcher, Caddy config, systemd unit, compose file. |
 

@@ -1,4 +1,5 @@
-import Database from 'better-sqlite3'
+// Node's built-in SQLite: no native dependency to compile on the server.
+import { DatabaseSync } from 'node:sqlite'
 
 export const STEPS = ['queued', 'preparing', 'coding', 'checking', 'publishing', 'done'] as const
 export type JobStatus = (typeof STEPS)[number] | 'failed'
@@ -24,11 +25,11 @@ export interface JobEvent {
 const ACTIVE = `('preparing','coding','checking','publishing')`
 
 export class Store {
-  private db: Database.Database
+  private db: DatabaseSync
 
   constructor(path: string) {
-    this.db = new Database(path)
-    this.db.pragma('journal_mode = WAL')
+    this.db = new DatabaseSync(path)
+    this.db.exec('PRAGMA journal_mode = WAL')
     this.db.exec(`
       CREATE TABLE IF NOT EXISTS jobs (
         n INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -58,11 +59,11 @@ export class Store {
   }
 
   getJob(id: string) {
-    return this.db.prepare('SELECT id, prompt, status, ipHash, createdAt, url, error FROM jobs WHERE id = ?').get(id) as Job | undefined
+    return this.db.prepare('SELECT id, prompt, status, ipHash, createdAt, url, error FROM jobs WHERE id = ?').get(id) as unknown as Job | undefined
   }
 
   nextQueued() {
-    return this.db.prepare(`SELECT id, prompt, status, ipHash, createdAt, url, error FROM jobs WHERE status = 'queued' ORDER BY n LIMIT 1`).get() as Job | undefined
+    return this.db.prepare(`SELECT id, prompt, status, ipHash, createdAt, url, error FROM jobs WHERE status = 'queued' ORDER BY n LIMIT 1`).get() as unknown as Job | undefined
   }
 
   // 0 once the job is being worked on; otherwise its 1-based place among queued jobs.
@@ -95,7 +96,7 @@ export class Store {
   }
 
   events(jobId: string, afterSeq = 0) {
-    return this.db.prepare('SELECT seq, ts, type, data FROM events WHERE jobId = ? AND seq > ? ORDER BY seq').all(jobId, afterSeq) as JobEvent[]
+    return this.db.prepare('SELECT seq, ts, type, data FROM events WHERE jobId = ? AND seq > ? ORDER BY seq').all(jobId, afterSeq) as unknown as JobEvent[]
   }
 
   // A restart kills the running container, so whatever was in flight cannot finish.
@@ -108,7 +109,7 @@ export class Store {
   // Prompts and visitor hashes are not kept longer than needed for limits and debugging.
   purgeOlderThan(cutoff: number) {
     this.db.prepare('DELETE FROM events WHERE jobId IN (SELECT id FROM jobs WHERE createdAt < ?)').run(cutoff)
-    return this.db.prepare('DELETE FROM jobs WHERE createdAt < ?').run(cutoff).changes
+    return Number(this.db.prepare('DELETE FROM jobs WHERE createdAt < ?').run(cutoff).changes)
   }
 
   close() {

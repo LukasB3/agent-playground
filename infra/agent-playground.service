@@ -9,7 +9,7 @@ User=playground
 Group=playground
 EnvironmentFile=/etc/agent-playground/orchestrator.env
 WorkingDirectory=/opt/agent-playground/orchestrator
-ExecStart=/usr/bin/node dist/main.js
+ExecStart=/usr/bin/node --disable-warning=ExperimentalWarning dist/main.js
 Restart=on-failure
 RestartSec=3
 

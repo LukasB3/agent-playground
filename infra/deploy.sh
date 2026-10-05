@@ -14,7 +14,7 @@ git -C "$repo" fetch --quiet origin
 git -C "$repo" checkout --quiet --detach "origin/$ref"
 
 cd "$repo/orchestrator"
-npm ci --no-audit --no-fund
+npm ci --ignore-scripts --no-audit --no-fund
 npm run build
 npm prune --omit=dev --no-audit --no-fund
 

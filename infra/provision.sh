@@ -46,13 +46,17 @@ TURNSTILE_SECRET=REPLACE_ME
 IP_HASH_SECRET=$(random)
 PROXY_SIGNING_SECRET=$signing
 EOF
-  # The real API key lives only here, readable by root and passed to the proxy container.
   install -o root -g root -m 600 /dev/null "$etc/proxy.env"
-  cat > "$etc/proxy.env" <<EOF
-ANTHROPIC_API_KEY=REPLACE_ME
-PROXY_SIGNING_SECRET=$signing
-EOF
+  echo "PROXY_SIGNING_SECRET=$signing" > "$etc/proxy.env"
 fi
+# The real API key lives only in this file, readable by root and passed to the
+# proxy container. It is written by hand, never by this script.
+if [[ ! -f $etc/anthropic.env ]]; then
+  install -o root -g root -m 600 /dev/null "$etc/anthropic.env"
+  echo "ANTHROPIC_API_KEY=REPLACE_ME" > "$etc/anthropic.env"
+fi
+chown root:root "$etc/anthropic.env"
+chmod 600 "$etc/anthropic.env"
 
 echo "== deploy key for the apps repository"
 if [[ ! -f $etc/deploy_key ]]; then

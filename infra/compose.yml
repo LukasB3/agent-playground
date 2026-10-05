@@ -11,7 +11,9 @@ services:
     image: pg-proxy:latest
     container_name: pg-proxy
     restart: unless-stopped
-    env_file: /etc/agent-playground/proxy.env
+    env_file:
+      - /etc/agent-playground/proxy.env
+      - /etc/agent-playground/anthropic.env
     read_only: true
     cap_drop: [ALL]
     security_opt: ['no-new-privileges:true']

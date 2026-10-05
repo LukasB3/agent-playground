@@ -12,7 +12,7 @@ The goal is that under these assumptions the attacker gains nothing beyond a sta
 
 | Asset | Where it lives | Who can read it |
 | --- | --- | --- |
-| Anthropic API key | `/etc/agent-playground/proxy.env`, environment of the proxy container | root |
+| Anthropic API key | `/etc/agent-playground/anthropic.env`, environment of the proxy container | root |
 | Deploy key for the apps repository | `/etc/agent-playground/deploy_key` | orchestrator user |
 | The host | | |
 | Visitors of published apps | their browsers | |

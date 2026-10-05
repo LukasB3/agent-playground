@@ -126,7 +126,9 @@ export const createProxy = ({ apiKey, signingSecret, policy, upstream = 'https:/
     }
     spent.outputTokens += outputTokensIn(seen)
     res.end()
-    log(`job=${job.jobId} status=${upstreamRes.status} requests=${spent.requests} outputTokens=${spent.outputTokens}`)
+    // Upstream error bodies describe what was wrong with the request; they are worth keeping.
+    const detail = upstreamRes.ok ? '' : ` error=${seen.replace(/\s+/g, ' ').slice(0, 400)}`
+    log(`job=${job.jobId} status=${upstreamRes.status} requests=${spent.requests} outputTokens=${spent.outputTokens}${detail}`)
   }
 
   return createServer((req, res) => {

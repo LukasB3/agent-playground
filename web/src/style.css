@@ -459,6 +459,61 @@ dd {
   color: var(--ink-soft);
 }
 
+/* Legal page */
+
+.prose > * {
+  max-width: 44rem;
+}
+
+.prose h1 {
+  max-width: none;
+  font-size: clamp(2rem, 5vw, 3.25rem);
+}
+
+.prose h2 {
+  margin-top: 3.5rem;
+  font-size: 1.625rem;
+  scroll-margin-top: 1.5rem;
+}
+
+.prose h3 {
+  margin: 2rem 0 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+.prose p,
+.prose ul,
+.prose address {
+  margin: 0.75rem 0 0;
+  font-style: normal;
+}
+
+.prose ul {
+  padding-left: 1.25rem;
+}
+
+.prose li + li {
+  margin-top: 0.5rem;
+}
+
+.nowrap {
+  overflow-wrap: anywhere;
+}
+
+.updated {
+  margin-top: 3rem;
+  color: var(--ink-soft);
+  font-size: 0.9375rem;
+}
+
+.consent {
+  max-width: 52ch;
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 0.875rem;
+}
+
 footer {
   margin-top: clamp(3rem, 8vw, 5rem);
   padding-block: 1.5rem 2.5rem;

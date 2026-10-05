@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # One-time (and re-runnable) host setup for a fresh Ubuntu 24.04 server.
-# Usage: sudo API_DOMAIN=api.playground.example WEB_ORIGIN=https://playground.example ./provision.sh
+# Usage: sudo API_DOMAIN=api.agent-playground.example WEB_ORIGIN=https://agent-playground.example ./provision.sh
 set -euo pipefail
 
 : "${API_DOMAIN:?set API_DOMAIN}" "${WEB_ORIGIN:?set WEB_ORIGIN}"

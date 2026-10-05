@@ -74,7 +74,7 @@ The tests cover the parts that carry the security claims: what the checker rejec
 On a fresh Ubuntu 24.04 server:
 
 ```sh
-sudo API_DOMAIN=api.playground.example WEB_ORIGIN=https://playground.example ./infra/provision.sh
+sudo API_DOMAIN=api.agent-playground.example WEB_ORIGIN=https://agent-playground.example ./infra/provision.sh
 # add the printed deploy key to the apps repository (write access)
 # put the Anthropic key into /etc/agent-playground/anthropic.env
 # put the Turnstile secret into /etc/agent-playground/orchestrator.env

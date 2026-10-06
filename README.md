@@ -94,3 +94,4 @@ The website is a Vercel project with `web/` as its root directory and `VITE_API_
 | Queue length | 10 |
 | Prompt length | 1,000 characters |
 | App size | 30 files, 300 kB per file, 1.5 MB in total |
+| App lifetime | 30 days, then removed from the apps repository |

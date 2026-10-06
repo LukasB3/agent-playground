@@ -106,6 +106,10 @@ export class Store {
     return rows.length
   }
 
+  idsCreatedSince(since: number) {
+    return (this.db.prepare('SELECT id FROM jobs WHERE createdAt >= ?').all(since) as { id: string }[]).map((row) => row.id)
+  }
+
   // Prompts and visitor hashes are not kept longer than needed for limits and debugging.
   purgeOlderThan(cutoff: number) {
     this.db.prepare('DELETE FROM events WHERE jobId IN (SELECT id FROM jobs WHERE createdAt < ?)').run(cutoff)

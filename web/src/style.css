@@ -1,14 +1,20 @@
 :root {
-  --paper: #e9eef2;
-  --sheet: #f8fafb;
-  --ink: #14213d;
-  --ink-soft: #4a5873;
-  --line: #b8c4cf;
+  --page: #e4e2fb;
+  --sheet: #fdfcff;
+  --ink: #1b1650;
+  --ink-soft: #524d86;
+  --line: #b4afe3;
+  --board: #211a72;
+  --board-ink: #f1efff;
+  --board-soft: #aaa5e2;
+  --board-line: #4a43a6;
   --ticket: #ffd23f;
-  --pass: #0f7b6c;
+  --mint: #9be3c9;
+  --rose: #f6b3b0;
   --stop: #c2202f;
 
-  --display: 'Bricolage Grotesque Variable', system-ui, sans-serif;
+  --display: 'Hepta Slab Variable', Rockwell, Georgia, serif;
+  --text: 'Instrument Sans Variable', system-ui, sans-serif;
   --mono: 'IBM Plex Mono', ui-monospace, monospace;
   --gutter: clamp(1rem, 4vw, 3rem);
 }
@@ -23,16 +29,20 @@
 
 body {
   margin: 0;
-  background: var(--paper);
+  background: var(--page);
   color: var(--ink);
-  font: 1.0625rem/1.55 var(--display);
-  font-optical-sizing: auto;
+  font: 1.0625rem/1.55 var(--text);
   -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--ticket);
+  color: var(--ink);
 }
 
 a {
   color: inherit;
-  text-underline-offset: 0.18em;
+  text-underline-offset: 0.2em;
 }
 
 :focus-visible {
@@ -43,58 +53,64 @@ a {
 .bar,
 main,
 footer {
-  max-width: 72rem;
+  max-width: 70rem;
   margin-inline: auto;
   padding-inline: var(--gutter);
 }
 
+/* Only the sub-pages have a bar; the start page opens with the headline. */
+
 .bar {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 0.5rem 1.5rem;
-  padding-block: 1.25rem;
+  padding-block: 1.5rem 0;
 }
 
 .brand {
-  font-weight: 800;
-  font-size: 1.125rem;
-  letter-spacing: -0.01em;
+  font: 700 1.125rem var(--display);
   text-decoration: none;
 }
 
-.bar nav {
-  display: flex;
-  gap: 1.5rem;
-  font-size: 0.9375rem;
+.brand:hover {
+  text-decoration: underline;
 }
 
 h1 {
-  max-width: 17ch;
-  margin: clamp(1.5rem, 6vw, 4.5rem) 0 0;
-  font-size: clamp(2.25rem, 6.2vw, 4.5rem);
-  font-weight: 800;
-  line-height: 0.98;
-  letter-spacing: -0.035em;
+  margin: clamp(2rem, 4.5vw, 3.25rem) 0 0;
+  font: 800 clamp(1.875rem, 4vw, 3rem) / 1.1 var(--display);
+  letter-spacing: -0.02em;
   text-wrap: balance;
 }
 
+h1 span {
+  display: block;
+}
+
 .lede {
-  max-width: 58ch;
-  margin: 1.5rem 0 0;
+  max-width: 66ch;
+  margin: 1.125rem 0 0;
   color: var(--ink-soft);
   font-size: 1.125rem;
 }
 
-/* Form and ticket side by side */
+.safety-link {
+  margin: 0.75rem 0 0;
+  font-weight: 600;
+}
+
+.ask {
+  display: block;
+  margin-top: clamp(1.75rem, 4vw, 2.5rem);
+  font-weight: 700;
+  font-size: 1.25rem;
+}
+
+/* Form and board side by side, tops aligned */
 
 .bench {
   display: grid;
-  grid-template-columns: minmax(0, 1.25fr) minmax(17rem, 0.75fr);
-  gap: clamp(1.5rem, 4vw, 3.5rem);
+  grid-template-columns: minmax(0, 1.2fr) minmax(19rem, 0.8fr);
+  gap: clamp(1.5rem, 3.5vw, 3rem);
   align-items: start;
-  margin-top: clamp(2rem, 5vw, 3.5rem);
+  margin-top: 0.75rem;
 }
 
 #order {
@@ -102,17 +118,12 @@ h1 {
   gap: 0.75rem;
 }
 
-#order label {
-  font-weight: 700;
-  font-size: 1.25rem;
-}
-
 textarea {
   width: 100%;
-  min-height: 9.5rem;
-  padding: 1rem 1.125rem;
+  min-height: 11rem;
+  padding: 1.125rem 1.25rem;
   border: 2px solid var(--ink);
-  border-radius: 4px;
+  border-radius: 12px;
   background: var(--sheet);
   color: var(--ink);
   font: inherit;
@@ -122,7 +133,7 @@ textarea {
 }
 
 textarea::placeholder {
-  color: #7c889c;
+  color: #8581b4;
 }
 
 .under-field {
@@ -142,7 +153,7 @@ textarea::placeholder {
 }
 
 .examples button {
-  padding: 0.3rem 0.75rem;
+  padding: 0.3rem 0.8rem;
   border: 1px solid var(--line);
   border-radius: 999px;
   background: transparent;
@@ -180,7 +191,8 @@ textarea::placeholder {
   margin: 0;
   padding: 0.625rem 0.875rem;
   border-left: 4px solid var(--stop);
-  background: #fbe9eb;
+  border-radius: 0 6px 6px 0;
+  background: #fbe4ea;
   font-size: 0.9375rem;
 }
 
@@ -188,10 +200,8 @@ textarea::placeholder {
 .open {
   justify-self: start;
   padding: 0.875rem 1.75rem;
-  border: 2px solid var(--ink);
-  border-radius: 4px;
-  background: var(--ink);
-  color: var(--sheet);
+  border: 0;
+  border-radius: 999px;
   font: inherit;
   font-weight: 700;
   font-size: 1.125rem;
@@ -199,16 +209,39 @@ textarea::placeholder {
   cursor: pointer;
 }
 
-#submit:hover:not(:disabled),
-.open:hover {
-  background: #1f3260;
+#submit {
+  background: var(--board);
+  color: var(--board-ink);
+}
+
+#submit:hover:not(:disabled) {
+  background: #2f26a0;
 }
 
 #submit:disabled {
-  border-color: var(--line);
   background: var(--line);
   color: var(--ink-soft);
   cursor: not-allowed;
+}
+
+.consent {
+  max-width: 52ch;
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 0.875rem;
+}
+
+/* The board: ticket on top, the route below */
+
+.board {
+  padding: 1rem;
+  border-radius: 20px;
+  background: var(--board);
+  color: var(--board-ink);
+}
+
+.board :focus-visible {
+  outline-color: var(--ticket);
 }
 
 /* The ticket: the one loud object on the page */
@@ -216,9 +249,10 @@ textarea::placeholder {
 .ticket {
   --tear: 4.25rem;
   position: relative;
-  padding: 1.25rem 1.5rem calc(var(--tear) + 0.25rem);
+  padding: 1.125rem 1.375rem calc(var(--tear) + 0.25rem);
+  border-radius: 8px;
   background: var(--ticket);
-  border-radius: 6px;
+  color: var(--ink);
   mask:
     radial-gradient(circle 0.6rem at 0 calc(100% - var(--tear)), #0000 97%, #000) left / 51% 100% no-repeat,
     radial-gradient(circle 0.6rem at 100% calc(100% - var(--tear)), #0000 97%, #000) right / 51% 100% no-repeat;
@@ -228,26 +262,24 @@ textarea::placeholder {
   content: '';
   position: absolute;
   inset: auto 1rem var(--tear) 1rem;
-  border-top: 2px dashed rgb(20 33 61 / 0.45);
+  border-top: 2px dashed rgb(27 22 80 / 0.45);
 }
 
 .ticket-label {
   margin: 0;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .ticket-figure {
-  margin: 0.25rem 0 0.5rem;
-  font-size: clamp(4rem, 9vw, 6rem);
-  font-weight: 800;
-  line-height: 0.9;
-  letter-spacing: -0.04em;
+  margin: 0.25rem 0 0.625rem;
+  font: 800 clamp(3.5rem, 7.5vw, 5rem) / 0.95 var(--display);
+  letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums;
 }
 
 .ticket-note {
   position: absolute;
-  inset: auto 1.5rem 0 1.5rem;
+  inset: auto 1.375rem 0 1.375rem;
   display: flex;
   align-items: center;
   height: var(--tear);
@@ -256,26 +288,22 @@ textarea::placeholder {
   line-height: 1.3;
 }
 
-.ticket[data-state='idle'] {
-  background: #f3dd8a;
-}
-
 .ticket[data-state='idle'] .ticket-figure {
-  opacity: 0.35;
+  opacity: 0.3;
 }
 
 .ticket[data-state='done'] {
-  background: #9be3c9;
+  background: var(--mint);
 }
 
 .ticket[data-state='failed'] {
   --tear: 6.5rem;
-  background: #f6b3b0;
+  background: var(--rose);
 }
 
 .ticket[data-state='done'] .ticket-figure,
 .ticket[data-state='failed'] .ticket-figure {
-  font-size: clamp(3.25rem, 7vw, 4.5rem);
+  font-size: clamp(3rem, 6vw, 4rem);
 }
 
 .ticket.printed {
@@ -293,117 +321,181 @@ textarea::placeholder {
   }
 }
 
-/* Stations: the fixed route every job takes */
+/* Stations: the fixed route every job takes. Only the current one explains itself. */
 
 .stations {
-  margin: 1.75rem 0 0;
-  padding: 0;
+  margin: 1.375rem 0 0;
+  padding: 0 0.375rem;
   list-style: none;
 }
 
-.stations li {
+.stations > li {
   position: relative;
-  padding: 0 0 1.125rem 2rem;
-  color: var(--ink-soft);
+  padding: 0 0 0.875rem 2.375rem;
+  color: var(--board-soft);
 }
 
-.stations li::before {
-  content: '';
+.stations > li:last-child {
+  padding-bottom: 0.375rem;
+}
+
+.mark {
   position: absolute;
   left: 0;
-  top: 0.3rem;
-  width: 0.875rem;
-  height: 0.875rem;
-  border: 2px solid var(--line);
+  top: 0.1875rem;
+  width: 1.125rem;
+  height: 1.125rem;
+  border: 2px solid var(--board-line);
   border-radius: 50%;
-  background: var(--paper);
 }
 
-.stations li:not(:last-child)::after {
+.stations > li:not(:last-child)::after {
   content: '';
   position: absolute;
-  left: calc(0.4375rem - 1px);
-  top: 1.35rem;
-  bottom: -0.2rem;
-  border-left: 2px solid var(--line);
+  left: calc(0.5625rem - 1px);
+  top: 1.625rem;
+  bottom: -0.0625rem;
+  width: 2px;
+  background: var(--board-line);
 }
 
 .stations strong {
   display: block;
-  color: inherit;
-  font-weight: 700;
+  font-weight: 600;
+  line-height: 1.5rem;
 }
 
 .stations span {
-  display: block;
+  display: none;
+  margin-top: 0.125rem;
   font-size: 0.9375rem;
   line-height: 1.4;
 }
 
-.stations li.past::before {
-  border-color: var(--ink);
-  background: var(--ink);
+.stations li.now span,
+.stations li.stopped span,
+.stations li.end.past span {
+  display: block;
+}
+
+.stations li.past {
+  color: var(--board-ink);
+}
+
+.stations li.past .mark {
+  border-color: var(--board-ink);
+  background: var(--board-ink)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.6 6.4l2.3 2.3 4.5-5.2' fill='none' stroke='%23211a72' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+    center / 0.75rem no-repeat;
 }
 
 .stations li.past::after {
-  border-color: var(--ink);
+  background: var(--board-ink);
 }
+
+/* The running station: orbiting arc, a tag that says so, and a line that flows on */
 
 .stations li.now {
-  color: var(--ink);
+  color: #fff;
 }
 
-.stations li.now::before {
-  border-color: var(--ink);
+.stations li.now strong {
+  font-weight: 700;
+}
+
+.stations li.now strong::after {
+  content: 'running';
+  margin-left: 0.625rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 999px;
   background: var(--ticket);
-  animation: working 1.4s ease-in-out infinite;
+  color: var(--ink);
+  font-size: 0.75rem;
+  vertical-align: 0.1em;
 }
 
-.stations li.end.past::before {
-  border-color: var(--pass);
-  background: var(--pass);
+.stations li.now[data-status='queued'] strong::after {
+  content: 'waiting';
 }
 
-.stations li.stopped {
-  color: var(--stop);
+.stations li.now .mark {
+  border-color: var(--ticket);
+  background: var(--ticket);
+  box-shadow: inset 0 0 0 3px var(--board);
 }
 
-.stations li.stopped::before {
-  border-color: var(--stop);
-  background: var(--stop);
-  animation: none;
+.stations li.now .mark::before {
+  content: '';
+  position: absolute;
+  inset: -0.5rem;
+  border: 2px solid transparent;
+  border-top-color: var(--ticket);
+  border-right-color: var(--ticket);
+  border-radius: 50%;
+  animation: orbit 0.9s linear infinite;
 }
 
-@keyframes working {
-  50% {
-    box-shadow: 0 0 0 6px rgb(255 210 63 / 0.55);
+.stations li.now::after {
+  top: 2rem;
+  background: repeating-linear-gradient(to bottom, var(--ticket) 0 0.375rem, transparent 0.375rem 0.75rem);
+  background-size: 2px 0.75rem;
+  animation: flow 0.6s linear infinite;
+}
+
+@keyframes orbit {
+  to {
+    rotate: 1turn;
   }
 }
 
+@keyframes flow {
+  to {
+    background-position-y: 0.75rem;
+  }
+}
+
+@keyframes breathe {
+  50% {
+    opacity: 0.25;
+  }
+}
+
+.stations li.end.past {
+  color: var(--mint);
+}
+
+.stations li.end.past .mark {
+  border-color: var(--mint);
+  background-color: var(--mint);
+}
+
+.stations li.stopped {
+  color: var(--rose);
+}
+
+.stations li.stopped .mark {
+  border-color: var(--rose);
+  background: var(--rose);
+}
+
 .files {
-  max-height: 9rem;
+  max-height: 7rem;
   margin: 0.5rem 0 0;
   padding: 0;
   overflow-y: auto;
   list-style: none;
   font: 0.8125rem/1.6 var(--mono);
-  color: var(--ink);
+  color: var(--board-ink);
 }
 
-.stations .files li {
-  padding: 0;
-  color: inherit;
+.files:empty {
+  display: none;
 }
 
-.stations .files li::before,
-.stations .files li::after {
-  content: none;
-}
-
-.stations .files li.note {
-  font-family: var(--display);
+.files li.note {
+  font-family: var(--text);
   font-size: 0.875rem;
-  color: var(--ink-soft);
+  color: var(--board-soft);
 }
 
 .result {
@@ -411,51 +503,52 @@ textarea::placeholder {
   flex-wrap: wrap;
   align-items: center;
   gap: 0.75rem 1.25rem;
-  margin-top: 0.5rem;
+  margin-top: 0.75rem;
+  padding: 1rem 0.375rem 0.25rem;
+  border-top: 1px solid var(--board-line);
+}
+
+.open {
+  background: var(--ticket);
+  color: var(--ink);
+}
+
+.open:hover {
+  background: #ffdf70;
 }
 
 .result button {
   padding: 0;
   border: 0;
   background: none;
-  color: var(--ink);
+  color: inherit;
   font: inherit;
   font-size: 0.9375rem;
   text-decoration: underline;
-  text-underline-offset: 0.18em;
+  text-underline-offset: 0.2em;
   cursor: pointer;
 }
 
-/* Safety section */
+/* How it stays safe */
 
-#safety {
-  margin-top: clamp(4rem, 10vw, 7rem);
-  padding-top: 2.5rem;
+.safety dl {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
+  gap: 2.25rem clamp(1.5rem, 4vw, 3.5rem);
+  margin: clamp(2.5rem, 6vw, 4rem) 0 0;
+}
+
+.safety dl > div {
+  padding-top: 1rem;
   border-top: 2px solid var(--ink);
 }
 
-h2 {
-  margin: 0;
-  font-size: clamp(1.75rem, 3.6vw, 2.5rem);
-  font-weight: 800;
-  line-height: 1.05;
-  letter-spacing: -0.025em;
-}
-
-dl {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
-  gap: 2rem clamp(1.5rem, 4vw, 3.5rem);
-  margin: 2.5rem 0 0;
-}
-
 dt {
-  font-weight: 700;
-  font-size: 1.125rem;
+  font: 700 1.1875rem/1.3 var(--display);
 }
 
 dd {
-  margin: 0.375rem 0 0;
+  margin: 0.5rem 0 0;
   color: var(--ink-soft);
 }
 
@@ -467,12 +560,11 @@ dd {
 
 .prose h1 {
   max-width: none;
-  font-size: clamp(2rem, 5vw, 3.25rem);
 }
 
 .prose h2 {
-  margin-top: 3.5rem;
-  font-size: 1.625rem;
+  margin: 3.5rem 0 0;
+  font: 700 1.5rem/1.2 var(--display);
   scroll-margin-top: 1.5rem;
 }
 
@@ -507,18 +599,25 @@ dd {
   font-size: 0.9375rem;
 }
 
-.consent {
-  max-width: 52ch;
-  margin: 0;
-  color: var(--ink-soft);
-  font-size: 0.875rem;
-}
-
 footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.5rem 2rem;
   margin-top: clamp(3rem, 8vw, 5rem);
   padding-block: 1.5rem 2.5rem;
   color: var(--ink-soft);
   font-size: 0.9375rem;
+}
+
+footer p {
+  margin: 0;
+}
+
+footer nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
 }
 
 @media (max-width: 52rem) {
@@ -536,9 +635,15 @@ footer {
   }
 }
 
+/* Without motion the running station still stands out: full ring, slow fade, dashed line. */
 @media (prefers-reduced-motion: reduce) {
   .ticket.printed,
-  .stations li.now::before {
+  .stations li.now::after {
     animation: none;
+  }
+
+  .stations li.now .mark::before {
+    border-color: var(--ticket);
+    animation: breathe 2.4s ease-in-out infinite;
   }
 }

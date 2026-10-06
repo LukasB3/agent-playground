@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Describe a small web app in plain words. A sandboxed coding agent builds it and you get a link to the live result." />
+    <title>Agent Playground</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23ffd23f'/%3E%3Cpath d='M9 22V10h8a4 4 0 0 1 0 8h-4' fill='none' stroke='%2314213d' stroke-width='3'/%3E%3C/svg%3E" />
+  </head>
+  <body>
+    <header class="bar">
+      <a class="brand" href="./">Agent Playground</a>
+      <nav>
+        <a href="#safety">How it stays safe</a>
+        <a href="https://github.com/LukasB3/agent-playground">Source code</a>
+      </nav>
+    </header>
+
+    <main>
+      <h1>Describe a small web app. Get a link to it a few minutes later.</h1>
+      <p class="lede">A coding agent writes it inside a locked-down container, plain code checks every file, and the result goes live on its own page. One app is built at a time, so you may wait in line.</p>
+
+      <div class="bench">
+        <form id="order" novalidate>
+          <label for="prompt">What should it be?</label>
+          <textarea id="prompt" name="prompt" rows="5" maxlength="1000" required placeholder="A 5-minute timer that shows a QR code when it ends"></textarea>
+          <div class="under-field">
+            <ul class="examples" aria-label="Examples">
+              <li><button type="button">Tic Tac Toe for two players</button></li>
+              <li><button type="button">A tip calculator that splits the bill</button></li>
+              <li><button type="button">A QR code maker for any text</button></li>
+            </ul>
+            <span id="count" aria-hidden="true">0 / 1000</span>
+          </div>
+          <p class="scope">Single-page apps only: HTML, CSS and JavaScript that run in the browser. No servers, accounts or outside data.</p>
+          <div id="captcha"></div>
+          <p id="form-error" role="alert" hidden></p>
+          <button id="submit" type="submit" disabled>Build my app</button>
+          <p class="consent">The result is published on a public page. Do not include personal data. By sending a request you accept the <a href="legal#rules">rules</a> and the <a href="legal#privacy">privacy policy</a>.</p>
+        </form>
+
+        <aside id="job" aria-live="polite">
+          <div class="ticket" data-state="idle">
+            <p class="ticket-label" id="ticket-label">Your ticket</p>
+            <p class="ticket-figure" id="ticket-figure">No.</p>
+            <p class="ticket-note" id="ticket-note">Send a request to take a place in line.</p>
+          </div>
+          <ol class="stations" id="stations"></ol>
+          <div class="result" id="result" hidden>
+            <a id="result-link" class="open" target="_blank" rel="noopener">Open your app</a>
+            <button type="button" id="copy">Copy link</button>
+            <button type="button" id="again">Build another app</button>
+          </div>
+        </aside>
+      </div>
+
+      <section id="safety">
+        <h2>How it stays safe</h2>
+        <p class="lede">Every request is treated as hostile. The design assumes the agent can be talked into anything and makes sure that would not matter.</p>
+        <dl>
+          <div>
+            <dt>The agent can only write files</dt>
+            <dd>It runs in a throwaway container with no shell, no git and no route to the internet. The container is deleted after every job.</dd>
+          </div>
+          <div>
+            <dt>It never holds a real key</dt>
+            <dd>The container gets a pass that works for one job and expires with it. A separate proxy swaps it for the real API key, which the agent cannot read.</dd>
+          </div>
+          <div>
+            <dt>Plain code decides what gets published</dt>
+            <dd>A checker with no AI in it inspects every file: allowed types, size limits, no secrets, no outside scripts, no forms that send data anywhere.</dd>
+          </div>
+          <div>
+            <dt>Published apps are boxed in</dt>
+            <dd>Each page carries a policy that stops it from loading or contacting anything outside its own folder, and a badge marking it as generated.</dd>
+          </div>
+          <div>
+            <dt>Publishing is a separate, narrow step</dt>
+            <dd>Ordinary code pushes the checked files with a key that is valid for one repository and nothing else.</dd>
+          </div>
+          <div>
+            <dt>Costs have a ceiling</dt>
+            <dd>One job at a time, a hard time limit, a token budget per job, limits per visitor and per day, and a captcha in front.</dd>
+          </div>
+        </dl>
+      </section>
+    </main>
+
+    <footer>
+      <p>Built by <a href="https://lukasbossert.com">Lukas Bossert</a>. Generated apps are demos and may be removed at any time. <a href="legal">Legal notice and privacy</a></p>
+    </footer>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

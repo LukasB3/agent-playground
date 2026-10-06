@@ -1,0 +1,65 @@
+import { execFile } from 'node:child_process'
+import { existsSync } from 'node:fs'
+import { mkdir, rm, writeFile } from 'node:fs/promises'
+import { dirname, join } from 'node:path'
+import { promisify } from 'node:util'
+import type { Config } from './config.js'
+
+const run = promisify(execFile)
+
+export class PublishError extends Error {}
+
+// All git work happens here, in orchestrator code, with a deploy key that is
+// valid for the apps repository only. The agent never sees git or the key.
+export const createPublisher = (cfg: Config) => {
+  const repoDir = join(cfg.DATA_DIR, 'apps-repo')
+  const git = (...args: string[]) =>
+    run('git', ['-C', repoDir, ...args], {
+      timeout: 60_000,
+      env: {
+        PATH: process.env.PATH,
+        HOME: cfg.DATA_DIR,
+        GIT_TERMINAL_PROMPT: '0',
+        GIT_SSH_COMMAND: `ssh -i ${cfg.DEPLOY_KEY_PATH} -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile=${cfg.KNOWN_HOSTS_PATH}`,
+      },
+    })
+
+  const sync = async () => {
+    if (!existsSync(join(repoDir, '.git'))) {
+      await mkdir(repoDir, { recursive: true })
+      await git('init', '--initial-branch=main')
+      await git('remote', 'add', 'origin', cfg.APPS_REPO)
+      await git('config', 'user.name', 'agent-playground')
+      await git('config', 'user.email', 'agent-playground@users.noreply.github.com')
+    }
+    await git('fetch', '--depth=1', 'origin', 'main')
+    await git('reset', '--hard', 'origin/main')
+    await git('clean', '-fdx')
+  }
+
+  const waitUntilLive = async (jobId: string, url: string) => {
+    const deadline = Date.now() + cfg.PUBLISH_WAIT_S * 1000
+    while (Date.now() < deadline) {
+      const res = await fetch(`${url}?t=${Date.now()}`, { redirect: 'error', signal: AbortSignal.timeout(10_000) }).catch(() => null)
+      if (res?.ok && (await res.text()).includes(`content="${jobId}"`)) return
+      await new Promise((resolve) => setTimeout(resolve, 5000))
+    }
+    throw new PublishError('published, but the page did not come online in time')
+  }
+
+  return async (jobId: string, files: Map<string, Buffer>) => {
+    await sync()
+    const appDir = join(repoDir, 'apps', jobId)
+    await rm(appDir, { recursive: true, force: true })
+    for (const [path, bytes] of files) {
+      await mkdir(dirname(join(appDir, path)), { recursive: true })
+      await writeFile(join(appDir, path), bytes)
+    }
+    await git('add', '--', `apps/${jobId}`)
+    await git('commit', '--quiet', '-m', `publish app ${jobId}`)
+    await git('push', '--quiet', 'origin', 'HEAD:main')
+    const url = `${cfg.APPS_BASE_URL}/apps/${jobId}/`
+    await waitUntilLive(jobId, url)
+    return url
+  }
+}

@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+# Root-owned launcher for job containers. The orchestrator may run this through
+# sudo and nothing else, so the web-facing process never touches the Docker
+# socket. It accepts an action and a job id; every other detail of the
+# container is fixed here and in the root-owned config file.
+#
+#   pg-sandbox run <job-id>    first stdin line: job token, rest: prompt
+#   pg-sandbox kill <job-id>
+set -euo pipefail
+PATH=/usr/sbin:/usr/bin:/sbin:/bin
+
+conf=/etc/agent-playground/sandbox.conf
+docker=/usr/bin/docker
+if [[ $EUID -ne 0 ]]; then
+  # Test hooks. Ignored when running as root, which is how sudo runs it.
+  conf=${PG_SANDBOX_CONF:-$conf}
+  docker=${PG_DOCKER:-$docker}
+fi
+
+die() {
+  echo "pg-sandbox: $1" >&2
+  exit 64
+}
+
+[[ $# -eq 2 ]] || die "usage: pg-sandbox run|kill <job-id>"
+action=$1
+id=$2
+[[ $id =~ ^[a-z2-7]{20}$ ]] || die "invalid job id"
+
+# shellcheck source=/dev/null
+source "$conf"
+
+case $action in
+kill)
+  "$docker" kill "pg-job-$id" >/dev/null 2>&1 || true
+  ;;
+run)
+  IFS= read -r token || die "missing token"
+  [[ $token =~ ^pgj1\.[a-z2-7]{20}\.[0-9]{1,12}\.[a-f0-9]{64}$ && $token == "pgj1.$id."* ]] || die "invalid token"
+
+  workspace=$JOBS_DIR/$id
+  [[ -d $workspace && ! -L $workspace ]] || die "workspace missing"
+  uid=$(id -u "$RUN_AS")
+  gid=$(id -g "$RUN_AS")
+  [[ $(stat -c %u "$workspace") == "$uid" ]] || die "workspace has the wrong owner"
+
+  # Passed by name below, so the token never appears on a command line.
+  export ANTHROPIC_API_KEY=$token
+  exec "$docker" run --rm -i \
+    --name "pg-job-$id" \
+    --network "$NETWORK" \
+    --runtime "$RUNTIME" \
+    --user "$uid:$gid" \
+    --read-only \
+    --cap-drop ALL \
+    --security-opt no-new-privileges \
+    --pids-limit "$PIDS" \
+    --memory "$MEMORY" \
+    --memory-swap "$MEMORY" \
+    --cpus "$CPUS" \
+    --tmpfs "/tmp:rw,nosuid,nodev,size=64m,uid=$uid,gid=$gid" \
+    --tmpfs "/home/agent:rw,nosuid,nodev,size=64m,uid=$uid,gid=$gid" \
+    --mount "type=bind,source=$workspace,target=/workspace" \
+    --workdir /workspace \
+    --env HOME=/home/agent \
+    --env "ANTHROPIC_BASE_URL=$PROXY_URL" \
+    --env ANTHROPIC_API_KEY \
+    --env "ANTHROPIC_MODEL=$MODEL" \
+    "$IMAGE"
+  ;;
+*)
+  die "unknown action"
+  ;;
+esac

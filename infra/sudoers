@@ -1,0 +1,2 @@
+# The orchestrator may start and kill job containers through the launcher, and nothing else.
+playground ALL=(root) NOPASSWD: /usr/local/sbin/pg-sandbox

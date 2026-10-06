@@ -1,0 +1,26 @@
+[Unit]
+Description=Agent Playground orchestrator
+After=network-online.target docker.service
+Wants=network-online.target
+Requires=docker.service
+
+[Service]
+User=playground
+Group=playground
+EnvironmentFile=/etc/agent-playground/orchestrator.env
+WorkingDirectory=/opt/agent-playground/orchestrator
+ExecStart=/usr/bin/node --disable-warning=ExperimentalWarning dist/main.js
+Restart=on-failure
+RestartSec=3
+
+# The service has no Docker access. It starts job containers through sudo and
+# the pg-sandbox launcher, so NoNewPrivileges and the options that imply it
+# cannot be used here.
+ProtectSystem=strict
+ReadWritePaths=/var/lib/agent-playground
+ProtectHome=true
+PrivateTmp=true
+ProtectControlGroups=true
+
+[Install]
+WantedBy=multi-user.target

@@ -73,7 +73,7 @@ The policy is the actual enforcement. With `connect-src 'none'`, `form-action 'n
 - Three jobs per visitor per hour (IPv6 visitors are counted per /64), ten per hour and thirty per day overall, a queue of ten.
 - One job at a time, each with a hard timeout and a token budget.
 - A monthly spend limit on the Anthropic workspace as the outer bound.
-- Visitor addresses are stored only as keyed hashes, and jobs are deleted from the database after 30 days.
+- Visitor addresses are stored only as keyed hashes. Jobs are deleted from the database and published apps from the apps repository after 30 days.
 
 ## Known trade-offs
 

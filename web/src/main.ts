@@ -36,6 +36,7 @@ const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as 
 const form = $<HTMLFormElement>('order')
 const prompt = $<HTMLTextAreaElement>('prompt')
 const submit = $<HTMLButtonElement>('submit')
+const narrow = matchMedia('(max-width: 52rem)')
 const formError = $('form-error')
 const ticket = document.querySelector<HTMLElement>('.ticket')!
 const result = $('result')
@@ -218,7 +219,7 @@ form.addEventListener('submit', async (event) => {
   ticket.classList.remove('printed')
   void ticket.offsetWidth
   ticket.classList.add('printed')
-  ticket.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+  ticket.scrollIntoView({ behavior: 'smooth', block: narrow.matches ? 'center' : 'nearest' })
   render(body)
   watch(body.id)
 })
@@ -235,11 +236,6 @@ document.querySelectorAll<HTMLButtonElement>('.examples button').forEach((button
     prompt.focus()
   }),
 )
-
-$('again').addEventListener('click', () => {
-  reset()
-  prompt.focus()
-})
 
 $('copy').addEventListener('click', async () => {
   await navigator.clipboard.writeText(resultLink.href).catch(() => {})

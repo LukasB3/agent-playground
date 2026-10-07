@@ -210,7 +210,7 @@ form.addEventListener('submit', async (event) => {
   if (!res?.ok || !body?.id) {
     busy = false
     refreshSubmit()
-    return showFormError(body?.error ?? 'The playground could not be reached. Check your connection and try again.')
+    return showFormError(body?.error ?? 'The app generator could not be reached. Check your connection and try again.')
   }
   fileList.replaceChildren()
   result.hidden = true

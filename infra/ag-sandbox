@@ -4,12 +4,12 @@
 # socket. It accepts an action and a job id; every other detail of the
 # container is fixed here and in the root-owned config file.
 #
-#   pg-sandbox run <job-id>    first stdin line: job token, rest: prompt
-#   pg-sandbox kill <job-id>
+#   ag-sandbox run <job-id>    first stdin line: job token, rest: prompt
+#   ag-sandbox kill <job-id>
 set -euo pipefail
 PATH=/usr/sbin:/usr/bin:/sbin:/bin
 
-conf=/etc/agent-playground/sandbox.conf
+conf=/etc/app-generator/sandbox.conf
 docker=/usr/bin/docker
 if [[ $EUID -ne 0 ]]; then
   # Test hooks. Ignored when running as root, which is how sudo runs it.
@@ -18,11 +18,11 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 die() {
-  echo "pg-sandbox: $1" >&2
+  echo "ag-sandbox: $1" >&2
   exit 64
 }
 
-[[ $# -eq 2 ]] || die "usage: pg-sandbox run|kill <job-id>"
+[[ $# -eq 2 ]] || die "usage: ag-sandbox run|kill <job-id>"
 action=$1
 id=$2
 [[ $id =~ ^[a-z2-7]{20}$ ]] || die "invalid job id"
@@ -32,7 +32,7 @@ source "$conf"
 
 case $action in
 kill)
-  "$docker" kill "pg-job-$id" >/dev/null 2>&1 || true
+  "$docker" kill "ag-job-$id" >/dev/null 2>&1 || true
   ;;
 run)
   IFS= read -r token || die "missing token"
@@ -47,7 +47,7 @@ run)
   # Passed by name below, so the token never appears on a command line.
   export ANTHROPIC_API_KEY=$token
   exec "$docker" run --rm -i \
-    --name "pg-job-$id" \
+    --name "ag-job-$id" \
     --network "$NETWORK" \
     --runtime "$RUNTIME" \
     --user "$uid:$gid" \

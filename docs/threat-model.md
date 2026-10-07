@@ -12,8 +12,8 @@ The goal is that under these assumptions the attacker gains nothing beyond a sta
 
 | Asset | Where it lives | Who can read it |
 | --- | --- | --- |
-| Anthropic API key | `/etc/agent-playground/anthropic.env`, environment of the proxy container | root |
-| Deploy key for the apps repository | `/etc/agent-playground/deploy_key` | orchestrator user |
+| Anthropic API key | `/etc/app-generator/anthropic.env`, environment of the proxy container | root |
+| Deploy key for the apps repository | `/etc/app-generator/deploy_key` | orchestrator user |
 | The host | | |
 | Visitors of published apps | their browsers | |
 | The budget | Anthropic workspace | |
@@ -77,7 +77,7 @@ The policy is the actual enforcement. With `connect-src 'none'`, `form-action 'n
 
 ## Known trade-offs
 
-- **The launcher runs as root.** The orchestrator has no access to the Docker socket. It may run one root-owned script through sudo, `pg-sandbox run|kill <job-id>`, which validates the id and the job token and then starts a container whose every other setting is fixed in the script and a root-owned config file. A bug in that script would be serious, so it is short and tested. The price is that the service cannot use `NoNewPrivileges` and the systemd options that imply it.
+- **The launcher runs as root.** The orchestrator has no access to the Docker socket. It may run one root-owned script through sudo, `ag-sandbox run|kill <job-id>`, which validates the id and the job token and then starts a container whose every other setting is fixed in the script and a root-owned config file. A bug in that script would be serious, so it is short and tested. The price is that the service cannot use `NoNewPrivileges` and the systemd options that imply it.
 - **Navigation cannot be blocked.** No browser policy stops a script from redirecting the top-level page. The checker rejects scripts that contain external URLs, but an obfuscated one would pass. The page could then send the visitor to another site, without being able to read or submit anything first.
 - **Shared origin on github.io.** All published apps share one origin with each other and with other project pages of the same account. They can read each other's local storage. Nothing sensitive may ever be hosted on that origin.
 - **The checker is not a content filter.** It enforces what a page can do, not what it says. Offensive text passes. The badge, the captcha and the ability to delete an app are the answer to that.

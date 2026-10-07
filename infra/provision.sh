@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # One-time (and re-runnable) host setup for a fresh Ubuntu 24.04 server.
-# Usage: sudo API_DOMAIN=api.agent-playground.example WEB_ORIGIN=https://agent-playground.example ./provision.sh
+# Usage: sudo API_DOMAIN=api.app-generator.example WEB_ORIGIN=https://app-generator.example ./provision.sh
 set -euo pipefail
 
 : "${API_DOMAIN:?set API_DOMAIN}" "${WEB_ORIGIN:?set WEB_ORIGIN}"
 [[ $EUID -eq 0 ]] || { echo "run as root" >&2; exit 1; }
 here=$(cd "$(dirname "$0")" && pwd)
-etc=/etc/agent-playground
-data=/var/lib/agent-playground
+etc=/etc/app-generator
+data=/var/lib/app-generator
 export DEBIAN_FRONTEND=noninteractive
 
 echo "== packages"
@@ -29,17 +29,17 @@ ufw allow 443
 ufw --force enable
 
 echo "== service user and directories"
-id -u playground &>/dev/null || useradd --system --home-dir "$data" --shell /usr/sbin/nologin playground
+id -u appgen &>/dev/null || useradd --system --home-dir "$data" --shell /usr/sbin/nologin appgen
 # The orchestrator must not reach the Docker socket; it gets the launcher below instead.
-gpasswd --delete playground docker &>/dev/null || true
-install -d -o playground -g playground -m 750 "$data"
-install -d -o root -g playground -m 750 "$etc"
+gpasswd --delete appgen docker &>/dev/null || true
+install -d -o appgen -g appgen -m 750 "$data"
+install -d -o root -g appgen -m 750 "$etc"
 
 echo "== secrets"
 random() { head -c 32 /dev/urandom | base64 | tr -d '=+/'; }
 if [[ ! -f $etc/orchestrator.env ]]; then
   signing=$(random)
-  install -o root -g playground -m 640 /dev/null "$etc/orchestrator.env"
+  install -o root -g appgen -m 640 /dev/null "$etc/orchestrator.env"
   cat > "$etc/orchestrator.env" <<EOF
 WEB_ORIGIN=$WEB_ORIGIN
 TURNSTILE_SECRET=REPLACE_ME
@@ -60,17 +60,17 @@ chmod 600 "$etc/anthropic.env"
 
 echo "== deploy key for the apps repository"
 if [[ ! -f $etc/deploy_key ]]; then
-  ssh-keygen -q -t ed25519 -N '' -C 'agent-playground deploy key' -f "$etc/deploy_key"
-  chown playground:playground "$etc/deploy_key" "$etc/deploy_key.pub"
+  ssh-keygen -q -t ed25519 -N '' -C 'app-generator deploy key' -f "$etc/deploy_key"
+  chown appgen:appgen "$etc/deploy_key" "$etc/deploy_key.pub"
   chmod 600 "$etc/deploy_key"
 fi
 install -o root -g root -m 644 "$here/github_known_hosts" "$etc/known_hosts"
 
 echo "== sandbox launcher"
-install -o root -g root -m 755 "$here/pg-sandbox" /usr/local/sbin/pg-sandbox
+install -o root -g root -m 755 "$here/ag-sandbox" /usr/local/sbin/ag-sandbox
 install -o root -g root -m 644 "$here/sandbox.conf" "$etc/sandbox.conf"
-install -o root -g root -m 440 "$here/sudoers" /etc/sudoers.d/agent-playground
-visudo -cf /etc/sudoers.d/agent-playground
+install -o root -g root -m 440 "$here/sudoers" /etc/sudoers.d/app-generator
+visudo -cf /etc/sudoers.d/app-generator
 
 echo "== caddy"
 sed "s/{{API_DOMAIN}}/$API_DOMAIN/" "$here/Caddyfile" > /etc/caddy/Caddyfile
@@ -78,9 +78,9 @@ systemctl enable caddy
 systemctl reload caddy || systemctl restart caddy
 
 echo "== systemd unit"
-install -o root -g root -m 644 "$here/agent-playground.service" /etc/systemd/system/agent-playground.service
+install -o root -g root -m 644 "$here/app-generator.service" /etc/systemd/system/app-generator.service
 systemctl daemon-reload
-systemctl enable agent-playground
+systemctl enable app-generator
 
 echo
 echo "Done. Deploy key to add to the apps repository (write access):"

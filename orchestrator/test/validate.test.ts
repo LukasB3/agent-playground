@@ -6,13 +6,13 @@ import { signJobToken } from '../src/token.js'
 import { CSP, LIMITS, ValidationError, validateWorkspace } from '../src/validate.js'
 
 const page = (body: string, head = '') => `<!doctype html><html><head><title>t</title>${head}</head><body>${body}</body></html>`
-const opts = { jobId: 'job123', libs: new Map([['qrcode.js', Buffer.from('/* pristine */')]]), badgeUrl: 'https://playground.example' }
+const opts = { jobId: 'job123', libs: new Map([['qrcode.js', Buffer.from('/* pristine */')]]), badgeUrl: 'https://app-generator.example' }
 
 let dir: string
 afterEach(() => rm(dir, { recursive: true, force: true }))
 
 const workspace = async (files: Record<string, string>) => {
-  dir = await mkdtemp(join(tmpdir(), 'pg-validate-'))
+  dir = await mkdtemp(join(tmpdir(), 'ag-validate-'))
   for (const [path, content] of Object.entries(files)) {
     await mkdir(dirname(join(dir, path)), { recursive: true })
     await writeFile(join(dir, path), content)
@@ -44,7 +44,7 @@ describe('accepted apps', () => {
     expect([...out.keys()].sort()).toEqual(['index.html', 'js/app.js', 'style.css'])
     expect(html).toContain(`<meta http-equiv="Content-Security-Policy" content="${CSP}">`)
     expect(html.indexOf('Content-Security-Policy')).toBeLessThan(html.indexOf('<title>'))
-    expect(html).toContain('<meta name="playground-job" content="job123">')
+    expect(html).toContain('<meta name="app-generator-job" content="job123">')
     expect(html).toContain('AI-generated demo')
   })
 

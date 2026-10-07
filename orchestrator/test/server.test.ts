@@ -8,7 +8,7 @@ import { ValidationError } from '../src/validate.js'
 import { Worker } from '../src/worker.js'
 
 const cfg: Config = loadConfig({
-  WEB_ORIGIN: 'https://playground.example',
+  WEB_ORIGIN: 'https://app-generator.example',
   TURNSTILE_SECRET: 'turnstile',
   IP_HASH_SECRET: 'i'.repeat(32),
   PROXY_SIGNING_SECRET: 'p'.repeat(32),
@@ -118,7 +118,7 @@ describe('job results', () => {
 
   it('hides internal errors', async () => {
     await setup(async () => {
-      throw new Error('git push failed: key /etc/agent-playground/deploy_key')
+      throw new Error('git push failed: key /etc/app-generator/deploy_key')
     })
     const { id } = (await submit()).json()
     await expect.poll(async () => (await app.inject({ url: `/api/jobs/${id}` })).json().status).toBe('failed')
@@ -152,7 +152,7 @@ describe('job results', () => {
   it('only allows the website origin through CORS', async () => {
     await setup(gated)
     const from = async (origin: string) => (await app.inject({ url: '/api/health', headers: { origin } })).headers['access-control-allow-origin']
-    expect(await from('https://playground.example')).toBe('https://playground.example')
+    expect(await from('https://app-generator.example')).toBe('https://app-generator.example')
     expect(await from('https://evil.example')).not.toBe('https://evil.example')
   })
 })

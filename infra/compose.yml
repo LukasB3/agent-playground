@@ -1,19 +1,19 @@
 # Long-running containers and the two networks. Job containers are started by
-# the orchestrator and join `pg-sandbox`, which has no route to the internet:
+# the orchestrator and join `ag-sandbox`, which has no route to the internet:
 # the key proxy is the only thing they can reach.
-name: agent-playground
+name: app-generator
 
 services:
   proxy:
     build:
       context: ../orchestrator
       dockerfile: proxy.Dockerfile
-    image: pg-proxy:latest
-    container_name: pg-proxy
+    image: ag-proxy:latest
+    container_name: ag-proxy
     restart: unless-stopped
     env_file:
-      - /etc/agent-playground/proxy.env
-      - /etc/agent-playground/anthropic.env
+      - /etc/app-generator/proxy.env
+      - /etc/app-generator/anthropic.env
     read_only: true
     cap_drop: [ALL]
     security_opt: ['no-new-privileges:true']
@@ -23,12 +23,12 @@ services:
 
   sandbox:
     build: ../sandbox
-    image: pg-sandbox:latest
+    image: ag-sandbox:latest
     profiles: [build]
 
 networks:
   sandbox:
-    name: pg-sandbox
+    name: ag-sandbox
     internal: true
     # No host-side address on this bridge, so job containers cannot reach
     # services on the host itself (sshd, Caddy) through the gateway either.
@@ -38,4 +38,4 @@ networks:
       config:
         - subnet: 172.30.0.0/24
   egress:
-    name: pg-egress
+    name: ag-egress

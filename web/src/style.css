@@ -92,6 +92,9 @@ h1 span {
 }
 
 .safety-link {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.5rem;
   margin: 0.75rem 0 0;
   font-weight: 600;
 }
@@ -552,6 +555,34 @@ dd {
   color: var(--ink-soft);
 }
 
+/* Why I built this */
+
+.why > * {
+  max-width: 44rem;
+}
+
+.why h1 {
+  max-width: none;
+}
+
+.why h2 {
+  margin: 2.5rem 0 0;
+  font: 700 1.5rem/1.2 var(--display);
+}
+
+.why p {
+  margin: 0.75rem 0 0;
+}
+
+.why ul {
+  margin: 0.75rem 0 0;
+  padding-left: 1.25rem;
+}
+
+.why li + li {
+  margin-top: 0.5rem;
+}
+
 /* Legal page */
 
 .prose > * {
@@ -595,6 +626,7 @@ dd {
 
 .updated {
   margin-top: 3rem;
+  margin-bottom: 0;
   color: var(--ink-soft);
   font-size: 0.9375rem;
 }
@@ -604,8 +636,8 @@ footer {
   flex-wrap: wrap;
   justify-content: space-between;
   gap: 0.5rem 2rem;
-  margin-top: clamp(3rem, 8vw, 5rem);
-  padding-block: 1.5rem 2.5rem;
+  margin-top: clamp(1.5rem, 4vw, 2.5rem);
+  padding-block: 1rem 2.5rem;
   color: var(--ink-soft);
   font-size: 0.9375rem;
 }

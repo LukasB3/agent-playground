@@ -93,7 +93,7 @@ h1 span {
 
 .ask {
   display: block;
-  margin-top: clamp(1.75rem, 4vw, 2.5rem);
+  margin-top: clamp(1.25rem, 3vw, 1.875rem);
   font-weight: 700;
   font-size: 1.25rem;
 }
@@ -628,7 +628,7 @@ footer {
   flex-wrap: wrap;
   justify-content: space-between;
   gap: 0.5rem 2rem;
-  margin-top: clamp(1.5rem, 4vw, 2.5rem);
+  margin-top: clamp(1rem, 2.5vw, 1.5rem);
   padding-block: 1rem 2.5rem;
   color: var(--ink-soft);
   font-size: 0.9375rem;
@@ -644,21 +644,13 @@ footer nav {
   gap: 0.5rem 1.5rem;
 }
 
-.more {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.25rem 1.5rem;
-  margin-top: 0.25rem;
-  font-weight: 600;
-}
-
 @media (max-width: 52rem) {
   .bench {
     grid-template-columns: minmax(0, 1fr);
   }
 
   .under-field {
-    flex-direction: column-reverse;
+    flex-direction: column;
     gap: 0.5rem;
   }
 

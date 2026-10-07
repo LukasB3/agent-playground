@@ -61,7 +61,7 @@ export const buildServer = async ({ cfg, store, worker, captcha }: ServerDeps) =
     const now = Date.now()
     const ipHash = hashIp(req.ip)
     if (store.countSince(now - HOUR, ipHash) >= cfg.JOBS_PER_IP_PER_HOUR) return refuse(reply, 429, 'You have reached the hourly limit. Please come back later.')
-    if (store.countSince(now - HOUR) >= cfg.JOBS_PER_HOUR || store.countSince(now - 24 * HOUR) >= cfg.JOBS_PER_DAY) return refuse(reply, 429, 'The playground has reached its capacity for now. Please come back later.')
+    if (store.countSince(now - HOUR) >= cfg.JOBS_PER_HOUR || store.countSince(now - 24 * HOUR) >= cfg.JOBS_PER_DAY) return refuse(reply, 429, 'The app generator has reached its capacity for now. Please come back later.')
     if (store.queuedCount() >= cfg.QUEUE_MAX) return refuse(reply, 429, 'The queue is full right now. Please try again in a few minutes.')
 
     const id = newJobId()

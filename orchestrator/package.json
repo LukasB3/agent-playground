@@ -1,5 +1,5 @@
 {
-  "name": "agent-playground-orchestrator",
+  "name": "app-generator-orchestrator",
   "private": true,
   "type": "module",
   "engines": {

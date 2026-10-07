@@ -12,7 +12,7 @@ const git = (cwd: string, ...args: string[]) =>
 
 // A bare repository stands in for GitHub; a seed clone fills it with two apps.
 beforeEach(() => {
-  dir = mkdtempSync(join(tmpdir(), 'pg-publish-'))
+  dir = mkdtempSync(join(tmpdir(), 'ag-publish-'))
   git(dir, 'init', '--quiet', '--bare', '--initial-branch=main', 'remote.git')
   git(dir, 'clone', '--quiet', 'remote.git', 'seed')
   const seed = join(dir, 'seed')
@@ -34,7 +34,7 @@ describe('app cleanup', () => {
       loadConfig({
         DATA_DIR: join(dir, 'data'),
         APPS_REPO: `file://${join(dir, 'remote.git')}`,
-        WEB_ORIGIN: 'https://playground.example',
+        WEB_ORIGIN: 'https://app-generator.example',
         TURNSTILE_SECRET: 't',
         IP_HASH_SECRET: 'i'.repeat(32),
         PROXY_SIGNING_SECRET: 'p'.repeat(32),

@@ -125,7 +125,7 @@ const checkHtml = (file: string, source: string, known: Set<string>, opts: Valid
       const tag = child.tagName
       const httpEquiv = attr(child, 'http-equiv')?.toLowerCase()
       // Our own policy and job marker replace whatever the agent supplied.
-      if (tag === 'meta' && (httpEquiv === 'content-security-policy' || attr(child, 'name') === 'playground-job')) return false
+      if (tag === 'meta' && (httpEquiv === 'content-security-policy' || attr(child, 'name') === 'app-generator-job')) return false
       if (BANNED_TAGS.has(tag)) problems.push(`${file}: <${tag}> is not allowed`)
       if (tag === 'meta' && httpEquiv === 'refresh') problems.push(`${file}: meta refresh is not allowed`)
       if (tag === 'script') {
@@ -154,11 +154,11 @@ const checkHtml = (file: string, source: string, known: Set<string>, opts: Valid
   if (!head || !body) return void problems.push(`${file}: not a complete HTML document`)
   head.childNodes.unshift(
     element('meta', { 'http-equiv': 'Content-Security-Policy', content: CSP }, head),
-    element('meta', { name: 'playground-job', content: opts.jobId }, head),
+    element('meta', { name: 'app-generator-job', content: opts.jobId }, head),
     element('meta', { name: 'referrer', content: 'no-referrer' }, head),
   )
   const badge = element('a', { href: opts.badgeUrl, rel: 'noopener', style: BADGE_STYLE }, body)
-  badge.childNodes.push({ nodeName: '#text', value: 'AI-generated demo from Agent Playground', parentNode: badge })
+  badge.childNodes.push({ nodeName: '#text', value: 'AI-generated demo from App Generator', parentNode: badge })
   body.childNodes.push(badge)
   const html = serialize(doc)
   return html.startsWith('<!DOCTYPE') ? html : `<!DOCTYPE html>${html}`

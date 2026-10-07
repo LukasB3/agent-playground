@@ -1,5 +1,5 @@
 {
-  "name": "agent-playground-web",
+  "name": "app-generator-web",
   "private": true,
   "type": "module",
   "scripts": {

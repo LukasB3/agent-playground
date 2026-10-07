@@ -1,4 +1,4 @@
-# Agent Playground
+# App Generator
 
 Type a request such as "a 5-minute timer with a QR code" and get a link to a working, deployed web app a few minutes later. A coding agent (Claude Code, headless) builds it; everything around the agent is ordinary, deterministic code.
 
@@ -18,7 +18,7 @@ flowchart LR
     C --> G[Publisher<br/>git + deploy key]
   end
   P -->|vetted Messages calls| A[Anthropic API]
-  G -->|apps/&lt;job-id&gt;/| R[agent-playground-apps<br/>GitHub Pages]
+  G -->|apps/&lt;job-id&gt;/| R[app-generator-apps<br/>GitHub Pages]
   R -->|link| V
 ```
 
@@ -74,10 +74,10 @@ The tests cover the parts that carry the security claims: what the checker rejec
 On a fresh Ubuntu 24.04 server:
 
 ```sh
-sudo API_DOMAIN=api.agent-playground.example WEB_ORIGIN=https://agent-playground.example ./infra/provision.sh
+sudo API_DOMAIN=api.app-generator.example WEB_ORIGIN=https://app-generator.example ./infra/provision.sh
 # add the printed deploy key to the apps repository (write access)
-# put the Anthropic key into /etc/agent-playground/anthropic.env
-# put the Turnstile secret into /etc/agent-playground/orchestrator.env
+# put the Anthropic key into /etc/app-generator/anthropic.env
+# put the Turnstile secret into /etc/app-generator/orchestrator.env
 sudo ./infra/deploy.sh
 ```
 

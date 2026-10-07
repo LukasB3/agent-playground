@@ -118,9 +118,11 @@ const render = (job: JobState) => {
 
   if (job.status === 'done' && job.url) {
     resultLink.href = job.url
+    const wasHidden = result.hidden
     result.hidden = false
     $('copy').hidden = false
     resultLink.hidden = false
+    if (wasHidden && narrow.matches) resultLink.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }
   if (job.status === 'failed') {
     result.hidden = false
@@ -219,7 +221,7 @@ form.addEventListener('submit', async (event) => {
   ticket.classList.remove('printed')
   void ticket.offsetWidth
   ticket.classList.add('printed')
-  ticket.scrollIntoView({ behavior: 'smooth', block: narrow.matches ? 'center' : 'nearest' })
+  ticket.scrollIntoView({ behavior: 'smooth', block: narrow.matches ? 'start' : 'nearest' })
   render(body)
   watch(body.id)
 })

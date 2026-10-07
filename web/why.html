@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Why App Generator exists: a small public demo of how an AI coding agent can build real software safely on your own infrastructure." />
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23ffd23f'/%3E%3Cpath d='M9 22V10h8a4 4 0 0 1 0 8h-4' fill='none' stroke='%231b1650' stroke-width='3'/%3E%3C/svg%3E" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23211a72'/%3E%3Cpath d='M6 10h20v4.5a1.5 1.5 0 0 0 0 3V22H6v-4.5a1.5 1.5 0 0 0 0-3z' fill='%23ffd23f'/%3E%3Cpath d='M20 12v8' stroke='%23211a72' stroke-width='1.5' stroke-dasharray='1.5 1.5'/%3E%3C/svg%3E" />
     <title>Why I built this – App Generator</title>
   </head>
   <body>
@@ -14,23 +14,17 @@
 
     <main class="why">
       <h1>Why I built this</h1>
-      <p class="lede">This site is a small, public proof of a bigger claim: today's AI coding agents can build real software end to end, and they can do it safely on infrastructure you control.</p>
+      <p class="lede">AI coding agents have become remarkably capable at writing code, and that progress shows no sign of slowing down. The more interesting question is whether they can work on their own, and what has to be in place around them to make that safe.</p>
 
       <h2>What it demonstrates</h2>
-      <p>Every app here is written by an agent that nobody supervises. A request comes in, the agent writes the code in a locked-down container, plain code checks the result, and the app goes live. The interesting part is not the apps. It is the pipeline around the agent: the sandbox, the key handling, the checks, the limits, the automatic publishing. That is the work that turns "an AI can write code" into something you can actually put in front of strangers.</p>
+      <p>Every app here is written by an agent that nobody supervises. A request comes in, the agent writes the code in a locked-down container, plain code checks the result, and the app goes live. The hard part in a setup like this is knowing whether the result is fine to publish when no person has reviewed it. That is handled by the infrastructure around the agent: it works in an isolated sandbox, API keys are handled carefully, every app runs through automated checks, time and cost are capped, and publishing only happens once everything passes. Agents still make mistakes, and this setup is designed to catch them before anything goes live.</p>
 
       <h2>Why only small web apps</h2>
-      <p>The generator is deliberately limited to single-page apps in the browser. Two reasons: it is open to everyone, so every job costs me tokens, and it exists to demonstrate the approach, not to host your product. The limits keep the demo cheap and the attack surface small.</p>
+      <p>The generator is limited to single-page browser apps because it is meant purely as a demonstration. The small scope also keeps costs low, at well under five cents per app on average.</p>
 
       <h2>What the same approach can do</h2>
-      <p>None of the pieces are tied to toy apps. The same pattern scales to medium-sized applications: a database, an API, authentication, background jobs, tests, deployment. Running on company infrastructure, with the company's own repositories, CI and secrets handling, an agent can build and extend such systems while the guard rails decide what actually ships.</p>
-      <ul>
-        <li>Internal tools and dashboards that read from your existing databases</li>
-        <li>Services with a proper backend, data model and API</li>
-        <li>Automations that connect systems you already run</li>
-        <li>Prototypes that become real products instead of being thrown away</li>
-      </ul>
-      <p>The agent does the writing. The architecture around it, which is the part I enjoy building, makes sure the output is checked, reproducible and safe to run.</p>
+      <p>With the tools available today, the same pattern already works for medium-sized applications with a database, an API, authentication, background jobs, tests and deployment. The agent would work in real repositories with CI, and the same kind of checks would decide what gets merged and shipped. Internal tools, dashboards on top of existing data, or automations that connect different systems are all realistic right now.</p>
+      <p>The agent is only one piece of the system. The architecture around it is what makes sure every result is checked, reproducible and safe to run.</p>
     </main>
 
     <footer>

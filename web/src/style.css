@@ -649,13 +649,8 @@ footer nav {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .under-field {
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  #count {
-    align-self: flex-end;
+  .examples {
+    flex: 1;
   }
 }
 
